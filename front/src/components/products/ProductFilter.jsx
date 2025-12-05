@@ -1,7 +1,7 @@
 // src/components/products/ProductFilter.jsx
 import React from 'react';
 import GradientButton from '../../UI/GradientButton/GradientButton';
-import SearchButton from '../../UI/SearchButton/SearchButton';
+import SearchButton from '../../UI/SearchBUtton/SearchButton';
 
 const ProductFilter = ({
   filters,
