@@ -3,13 +3,9 @@ from fastapi import Depends
 from typing import Annotated
 import os
 
-from dotenv import load_dotenv
-
-load_dotenv()
-
-
-# PostgreSQL async URL
+#PostgreSQL async URL
 postgres_url = os.getenv("DATABASE_URL")
+
 
 engine = create_async_engine(
     postgres_url,
