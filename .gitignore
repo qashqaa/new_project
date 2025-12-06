@@ -63,6 +63,7 @@ logs/
 *.db
 *.sqlite
 *.sqlite3
+pg_data/
 
 # ============ Окружение ============
 .env
