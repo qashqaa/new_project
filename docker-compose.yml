@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 15
+  postgres:
+    image: postgres:15-alpine
+    container_name: panda_db
+    env_file:
+      - .env
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      # 1. Данные БД в твоей папке
+      - ./pg_data/postgres:/var/lib/postgresql/data
+      
+      # 2. Init скрипты
+      - ./pg_data/init:/docker-entrypoint-initdb.d
+
+      # 3 Бэкапы
+      - ./pg_data/backups:/backups
+    networks:
+      - app-network
+
+
+  # Бэкенд
+  back:
+    build: ./back
+    env_file:
+      - .env
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./back:/app
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    networks:
+      - app-network
+
+  # Фронтенд
+  front:
+    build: ./front
+    env_file:
+      - .env
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    volumes:
+      - ./front:/app
+      - /app/node_modules
+    depends_on:
+      - back
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
