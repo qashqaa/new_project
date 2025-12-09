@@ -36,6 +36,7 @@ services:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
       - ./back:/app
+      - ./pg_data/backups:/backups
     environment:
       DATABASE_URL: ${DATABASE_URL}
     networks:

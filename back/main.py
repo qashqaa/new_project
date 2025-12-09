@@ -1,12 +1,14 @@
-import os
 from fastapi import FastAPI
-import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 
 from api_v1.CRM.crm_main import router as crm_router
+from api_v1.backup_maker.backup_view import router as backup_router
+
 
 app = FastAPI()
 app.include_router(crm_router)
+app.include_router(backup_router)
+
 
 # CORS настройки
 origins = [

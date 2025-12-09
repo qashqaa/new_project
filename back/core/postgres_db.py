@@ -6,7 +6,6 @@ import os
 #PostgreSQL async URL
 postgres_url = os.getenv("DATABASE_URL")
 
-
 engine = create_async_engine(
     postgres_url,
     # echo=True,  # ← ВКЛЮЧИ ЭТО
