@@ -22,7 +22,7 @@ class OrderProductMaterial(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     order_product_id: Mapped[int] = mapped_column(
-        ForeignKey("order_product_association.id")
+        ForeignKey("order_product_association.id", ondelete="cascade")
     )
     material_id: Mapped[str] = mapped_column(ForeignKey("materials.id"))
 
@@ -34,9 +34,7 @@ class OrderProductMaterial(Base):
     order_product: Mapped["OrderProductModel"] = relationship(
         back_populates="materials"
     )
-    material: Mapped["Material"] = relationship(
-        back_populates="orders_with_material", cascade="delete"
-    )
+    material: Mapped["Material"] = relationship(back_populates="orders_with_material")
 
     @property
     def total_price_actual(self):

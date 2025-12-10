@@ -1,6 +1,6 @@
 from sqlalchemy import select, Result
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload, joinedload
+from sqlalchemy.orm import selectinload
 
 from core.models import (
     Order,
@@ -32,7 +32,11 @@ async def create_order(
 async def get_orders(session: AsyncSession) -> list[Order]:
     stmt = (
         select(Order)
-        .options(selectinload(Order.products_detail), joinedload(Order.user))
+        .options(
+            selectinload(Order.products_detail),
+            selectinload(Order.user),
+            selectinload(Order.costs),
+        )
         .order_by(Order.created_date)
     )
 
@@ -51,7 +55,8 @@ async def get_order(session: AsyncSession, order_id: str) -> Order | None:
                 selectinload(OrderProductModel.materials).selectinload(
                     OrderProductMaterial.material
                 ),
-            )
+            ),
+            selectinload(Order.costs),
         )
         .order_by(Order.created_date)
         .where(Order.id == order_id)

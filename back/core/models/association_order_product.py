@@ -24,7 +24,7 @@ class OrderProductModel(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    order_id: Mapped[str] = mapped_column(ForeignKey("orders.id"))
+    order_id: Mapped[str] = mapped_column(ForeignKey("orders.id", ondelete="cascade"))
     product_id: Mapped[str] = mapped_column(ForeignKey("products.id"))
 
     product_price: Mapped[int] = mapped_column(default=0, server_default="0")
@@ -32,9 +32,7 @@ class OrderProductModel(Base):
 
     # m_to_m relationships
 
-    product: Mapped["Product"] = relationship(
-        back_populates="product_order", cascade="delete"
-    )
+    product: Mapped["Product"] = relationship(back_populates="product_order")
     order: Mapped["Order"] = relationship(back_populates="products_detail")
     materials: Mapped[list["OrderProductMaterial"]] = relationship(
         back_populates="order_product"

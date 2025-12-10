@@ -7,6 +7,31 @@ from core.models import Order
 from core.models import OrderProductModel
 
 
+class CreateOrderAdditionalCoastSchema(BaseModel):
+    cost: int | float
+    description: str
+
+    model_config = {"from_attributes": True}
+
+    @field_validator("cost")
+    @classmethod
+    def convert_to_tiyin(cls, cost):
+        return cost * 100
+
+
+class OrderAdditionalCoastSchema(BaseModel):
+    id: int
+    order_id: str
+    cost: int
+    description: str
+    model_config = {"from_attributes": True}
+
+    @field_validator("cost")
+    @classmethod
+    def convert_to_sum(cls, cost):
+        return int(cost / 100)
+
+
 class OrderProductItem(BaseModel):
     id: int
     order_product_id: int
@@ -90,10 +115,17 @@ class OrderCreateSchema(BaseModel):
     client_id: Optional[str] = None
     customer: str = Field(None, max_length=45, min_length=3)
     descriptions: Optional[str] = Field(None, min_length=3, max_length=500)
-    products_detail: list[OrderItemCreate]
+    paid: Optional[PositiveInt] = 0
+
+    @field_validator("paid")
+    @classmethod
+    def sum_to_tiyin(cls, v):
+        if v > 0:
+            return None
+        return v * 100
 
 
-class OrderSchemaWithMaterials(BaseModel):
+class OrderSchema(BaseModel):
     id: str
     status: int
     total_price: float | int
@@ -111,6 +143,7 @@ class OrderSchemaWithMaterials(BaseModel):
     user_id: Optional[str] = None
 
     products_detail: list[OrderItemWithMaterials]
+    costs: list[OrderAdditionalCoastSchema]
 
     model_config = {"from_attributes": True}
 
@@ -136,9 +169,17 @@ class OrderSchemaWithMaterials(BaseModel):
         return int(price / 100)
 
     @classmethod
-    def from_orm_with_rels(cls, order: Order) -> "OrderSchemaWithMaterials":
+    def from_orm_with_rels(cls, order: Order) -> "OrderSchema":
         products_detail = []
-
+        costs = [
+            OrderAdditionalCoastSchema(
+                id=cost.id,
+                order_id=cost.order_id,
+                cost=cost.cost,
+                description=cost.description,
+            )
+            for cost in order.costs
+        ]
         for detail in order.products_detail:  # type: OrderProductModel
             products_detail.append(
                 OrderItemWithMaterials(
@@ -186,6 +227,7 @@ class OrderSchemaWithMaterials(BaseModel):
             products_detail=products_detail,
             client_id=order.client_id,
             user_id=order.user_id,
+            costs=costs,
         )
 
 
@@ -199,7 +241,7 @@ class OrderFilterSchema(BaseModel):
 
     # Фильтры
     customer: Optional[str] = Field(None, description="Фильтр по заказчику")
-    status: Optional[str] = Field(None, description="Фильтр по статусу")
+    status: Optional[int] = Field(None, description="Фильтр по статусу")
     used_id: Optional[str] = Field(None, description="Фильтр по пользователю")
     client_id: Optional[str] = Field(None, description="Поиск по клиенту")
     search: Optional[str] = Field(None, description="Поиск по айди заказа")

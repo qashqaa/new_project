@@ -13,6 +13,7 @@ __all__ = (
     "OrderProductMaterial",
     "Client",
     "ProductPriceTier",
+    "OrderAddCostsModel",
 )
 
 from .base import Base
@@ -30,3 +31,4 @@ from .model_clients import Client
 from .association_order_product import OrderProductModel
 from .association_order_product_materials import OrderProductMaterial
 from .assotiation_product_price_tier import ProductPriceTier
+from .association_order_add_costs import OrderAddCostsModel
