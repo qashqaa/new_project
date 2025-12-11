@@ -115,14 +115,6 @@ class OrderCreateSchema(BaseModel):
     client_id: Optional[str] = None
     customer: str = Field(None, max_length=45, min_length=3)
     descriptions: Optional[str] = Field(None, min_length=3, max_length=500)
-    paid: Optional[PositiveInt] = 0
-
-    @field_validator("paid")
-    @classmethod
-    def sum_to_tiyin(cls, v):
-        if v > 0:
-            return None
-        return v * 100
 
 
 class OrderSchema(BaseModel):

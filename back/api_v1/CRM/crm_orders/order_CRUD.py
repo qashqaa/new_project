@@ -16,14 +16,12 @@ async def create_order(
     customer: str | None = None,
     descriptions: str | None = None,
     client_id: str | None = None,
-    paid: int = 0,
 ) -> Order:
     order = Order(
         user_id=user_id,
         customer=customer,
         descriptions=descriptions,
         client_id=client_id,
-        paid=paid,
     )
     session.add(order)
     return order

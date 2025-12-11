@@ -11,6 +11,7 @@ from api_v1.CRM.crm_orders.crm_orders_services import (
     delete_order_service,
     payment_add_service,
     get_order_by_id_service,
+    order_complete_service,
 )
 from core import SessionDepPG
 from core.ResponseModel.response_model import PaginatedResponse
@@ -59,7 +60,7 @@ async def crm_delete_order(session: SessionDepPG, order_id: str):
     await delete_order_service(session=session, order_id=order_id)
 
 
-@router.patch("/{order_id}/append_payment", response_model=OrderSchema)
+@router.patch("/append_payment/{order_id}", response_model=OrderSchema)
 async def crm_append_payment(
     session: SessionDepPG,
     order_id: str,
@@ -71,3 +72,9 @@ async def crm_append_payment(
         payment=payment,
     )
     return order
+
+
+@router.patch("/order_complete/{order_id}")
+async def crm_order_complete(session: SessionDepPG, order_id: str):
+    res = await order_complete_service(session=session, order_id=order_id)
+    return res

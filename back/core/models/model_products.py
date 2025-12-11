@@ -52,11 +52,18 @@ class Product(Base):
     def __repr__(self):
         return str(self)
 
-    def give_product_price(self, quantity: int):
-        price = next((obj for obj in self.price_tier if quantity in obj), 0)
-        if self.price_tier:
-            if isinstance(price, int):
-                price = min(self.price_tier).price
+    def give_product_price(self, quantity: int) -> int:
+        """Возвращает цену (число) для указанного количества."""
         if not self.price_tier:
-            price = 0
-        return price
+            return 0
+
+        # Ищем подходящий price_tier
+        for price_tier in self.price_tier:
+            if quantity in price_tier:  # использует contains
+                return price_tier.price  # ← возвращаем число!
+
+        # Если не нашли подходящий диапазон, берем минимальную цену
+        if self.price_tier:
+            return min(self.price_tier).price  # ← .price!
+
+        return 0

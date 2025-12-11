@@ -1,4 +1,5 @@
 from sqlalchemy import select, Result
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models import OrderProductModel
@@ -22,7 +23,11 @@ async def create_order_product(
 
 
 async def get_orders_products(session: AsyncSession) -> list[OrderProductModel]:
-    stmt = select(OrderProductModel).order_by(OrderProductModel.id)
+    stmt = (
+        select(OrderProductModel)
+        .options(selectinload(OrderProductModel.materials))
+        .order_by(OrderProductModel.id)
+    )
     result: Result = await session.execute(stmt)
     orders_products: list[OrderProductModel] = list(result.scalars().all())
     return orders_products
@@ -31,7 +36,11 @@ async def get_orders_products(session: AsyncSession) -> list[OrderProductModel]:
 async def get_order_product(
     session: AsyncSession, order_product_id: int
 ) -> OrderProductModel:
-    stmt = select(OrderProductModel).where(OrderProductModel.id == order_product_id)
+    stmt = (
+        select(OrderProductModel)
+        .options(selectinload(OrderProductModel.materials))
+        .where(OrderProductModel.id == order_product_id)
+    )
     result: Result = await session.execute(stmt)
     order_product: OrderProductModel = result.scalars().first()
     return order_product

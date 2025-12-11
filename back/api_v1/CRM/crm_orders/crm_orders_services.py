@@ -2,6 +2,7 @@ from sqlalchemy import select, func, Result
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from fastapi import HTTPException, status
+from datetime import datetime, UTC
 
 from api_v1.CRM.crm_orders.order_CRUD import (
     create_order,
@@ -12,7 +13,7 @@ from api_v1.CRM.crm_orders.orders_schemas import (
     OrderSchema,
     OrderFilterSchema,
 )
-from core.models import Order, OrderProductModel, OrderProductMaterial
+from core.models import Order, OrderProductModel, OrderProductMaterial, OrderStatus
 
 
 async def create_order_service(
@@ -25,8 +26,10 @@ async def create_order_service(
         client_id=new_order.client_id,
         customer=new_order.customer,
         descriptions=new_order.descriptions,
-        paid=new_order.paid,
     )
+    session.add(order)
+    await session.commit()
+    order = await get_order(session=session, order_id=order.id)
     return OrderSchema.from_orm_with_rels(order)
 
 
@@ -101,6 +104,12 @@ async def delete_order_service(session: AsyncSession, order_id: str) -> bool:
     if not order:
         return False
 
+    if order.status == 5:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Can not add payment order with status:{order.status}",
+        )
+
     await session.delete(order)
     await session.commit()
     return True
@@ -119,21 +128,19 @@ async def payment_add_service(
 
     order: Order | None = await get_order(session=session, order_id=order_id)
 
-    if order.status in [0, 6, 5]:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Can not add payment order with status:{order.status}",
-        )
-
     if order is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"order with id:{order_id} not found",
         )
 
+    if order.status in [6, 5]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Can not add payment order with status:{order.status}",
+        )
+
     if order.paid + payment <= order.total_price:
-        print(order.paid + payment)
-        print(order.total_price)
         order.paid += payment
 
     else:
@@ -146,3 +153,36 @@ async def payment_add_service(
     await session.refresh(order)
 
     return OrderSchema.from_orm_with_rels(order)
+
+
+async def order_complete_service(session: AsyncSession, order_id: str):
+    order: Order = await get_order(session=session, order_id=order_id)
+
+    if order is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"order with id:{order_id} not found",
+        )
+
+    if order.status > 4:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Can not complete order with status:{Order.status}",
+        )
+
+    if order.remains != 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"The order could not be completed, it was not paid {order.remains / 100}",
+        )
+
+    total_material_price = sum(
+        sum(opm.total_price_actual for opm in op.materials)
+        for op in order.products_detail
+    )
+
+    order.materials_price = total_material_price
+    order.completed_date = datetime.now(UTC).replace(tzinfo=None)
+    order.status = OrderStatus.COMPLETED.value
+    await session.commit()
+    return {"Message": f"Order status changed:{order.status}"}

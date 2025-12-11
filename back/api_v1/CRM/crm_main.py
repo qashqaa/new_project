@@ -8,6 +8,11 @@ from api_v1.CRM.crm_orders.crm_orders_view import router as crm_order_router
 from api_v1.CRM.crm_products.product_rels_view import (
     router as crm_product_material_router,
 )
+from api_v1.CRM.crm_orders.order_products_view import router as order_product_router
+from api_v1.CRM.crm_orders.order_product_material_view import (
+    router as order_product_material_router,
+)
+from api_v1.CRM.crm_orders.order_cost_view import router as order_cost_router
 
 router = APIRouter(
     tags=["CRM"],
@@ -18,3 +23,6 @@ router.include_router(crm_materials_router)
 router.include_router(crm_products_router)
 router.include_router(crm_order_router)
 router.include_router(crm_product_material_router)
+router.include_router(order_product_router)
+router.include_router(order_product_material_router)
+router.include_router(order_cost_router)

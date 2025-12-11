@@ -32,7 +32,7 @@ class OrderProductMaterial(Base):
     material_price: Mapped[int] = mapped_column(default=0, server_default="0")
 
     order_product: Mapped["OrderProductModel"] = relationship(
-        back_populates="materials"
+        back_populates="materials",
     )
     material: Mapped["Material"] = relationship(back_populates="orders_with_material")
 

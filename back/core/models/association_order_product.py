@@ -35,7 +35,8 @@ class OrderProductModel(Base):
     product: Mapped["Product"] = relationship(back_populates="product_order")
     order: Mapped["Order"] = relationship(back_populates="products_detail")
     materials: Mapped[list["OrderProductMaterial"]] = relationship(
-        back_populates="order_product"
+        back_populates="order_product",
+        passive_deletes="all",
     )
 
     @classmethod
@@ -53,6 +54,8 @@ class OrderProductModel(Base):
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
+            return self.product_id
+        if isinstance(other, str):
             return self.product_id
         return NotImplemented
 
