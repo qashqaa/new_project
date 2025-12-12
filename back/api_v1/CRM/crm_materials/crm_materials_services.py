@@ -106,7 +106,10 @@ async def append_material_service(
             status_code=status.HTTP_404_NOT_FOUND, detail="Material not found!"
         )
     if material.count_left + update_data.delta < 0:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT)
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="cringe",
+        )
 
     material.count_left += update_data.delta
     await session.commit()

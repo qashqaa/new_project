@@ -98,7 +98,7 @@ class MaterialSchema(BaseModel):
 
 ## схема на вход
 class MaterialAppendSchema(BaseModel):
-    delta: int = Field(ge=-1000, le=1000)
+    delta: int = Field(ge=-9999, le=9999)
 
 
 ## схема на вход

@@ -106,43 +106,43 @@ const MaterialCard = ({
         </div>
       )}
       {/* Управление количеством */}
-      <div className="mt-4">
-        <div className="bg-gray-50 rounded-lg p-3 border">
-          <label className="block text-xs font-medium text-gray-700 mb-2">
-            Изменение количества
+      <div className="mt-3">
+        <div className="bg-gray-50 rounded-lg p-2 border">
+          <label className="block text-xs font-medium text-gray-700 mb-1">
+            Изменить кол-во
           </label>
-          <div className="flex gap-2">
+          <div className="flex gap-1 items-center">
             <input
               type="number"
               min="0"
-              max="1000"
+              max="9999"
               placeholder="Кол-во"
               value={quantityInputs[material.id] || ''}
               onChange={(e) => onQuantityChange(material.id, e.target.value)}
-              className="flex-1 px-2 py-2 border rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="flex-1 px-2 py-1 border rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             />
             <button
               onClick={() => onAddQuantity(material.id)}
               disabled={updatingId === material.id}
-              className="px-3 py-2 bg-white text-green-600 rounded text-sm hover:bg-green-50 transition-colors font-medium disabled:opacity-50 flex items-center justify-center"
-              title="Добавить количество"
+              className="px-2 py-1 bg-white text-green-600 rounded text-xs hover:bg-green-50 transition-colors font-medium disabled:opacity-50 flex items-center justify-center min-w-[28px]"
+              title="Добавить"
             >
               {updatingId === material.id ? (
-                <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-3 h-3 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
               ) : (
-                <span className="text-lg">➕</span>
+                <span className="text-sm">+</span>
               )}
             </button>
             <button
               onClick={() => onRemoveQuantity(material.id)}
               disabled={updatingId === material.id}
-              className="px-3 py-2 bg-white text-red-500 rounded text-sm hover:bg-red-50 transition-colors font-medium disabled:opacity-50 flex items-center justify-center"
-              title="Удалить количество"
+              className="px-2 py-1 bg-white text-red-500 rounded text-xs hover:bg-red-50 transition-colors font-medium disabled:opacity-50 flex items-center justify-center min-w-[28px]"
+              title="Удалить"
             >
               {updatingId === material.id ? (
-                <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-3 h-3 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
               ) : (
-                <span className="text-lg">➖</span>
+                <span className="text-sm">-</span>
               )}
             </button>
           </div>

@@ -39,7 +39,7 @@ async def create_order_product_service(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"product with id:{new_order_product.product_id} not found",
         )
-    if product.id in order.products_detail:
+    if any(product.id == pd.product_id for pd in order.products_detail):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"product:{product.id} already in order:{order.id}",
@@ -124,7 +124,7 @@ async def order_product_count_change_service(
         )
 
     session.add(order_product)
-    order.total_price = order.products_price
+    order.total_price += order.products_price
     await session.commit()
     return {"Message": "CHANGED!"}
 
@@ -154,7 +154,7 @@ async def order_product_delete_service(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"order_product with id:{order_product_id} not found",
         )
-
+    order.total_price -= order_product.total_price
     await session.delete(order_product)
     await session.commit()
     return {"Message": "order_product deleted!"}

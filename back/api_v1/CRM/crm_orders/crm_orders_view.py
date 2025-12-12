@@ -4,6 +4,7 @@ from api_v1.CRM.crm_orders.orders_schemas import (
     OrderCreateSchema,
     OrderSchema,
     OrderFilterSchema,
+    OrderPartialUpdateSchema,
 )
 from api_v1.CRM.crm_orders.crm_orders_services import (
     create_order_service,
@@ -12,6 +13,7 @@ from api_v1.CRM.crm_orders.crm_orders_services import (
     payment_add_service,
     get_order_by_id_service,
     order_complete_service,
+    partial_order_update_service,
 )
 from core import SessionDepPG
 from core.ResponseModel.response_model import PaginatedResponse
@@ -53,6 +55,16 @@ async def crm_get_product(
         session=session, order_id=order_id
     )
     return order
+
+
+@router.patch("/{order_id}")
+async def crm_order_update(
+    session: SessionDepPG, order_id: str, update_data: OrderPartialUpdateSchema
+):
+    res = await partial_order_update_service(
+        session=session, order_id=order_id, update_data=update_data
+    )
+    return res
 
 
 @router.delete("/{order_id}", status_code=status.HTTP_204_NO_CONTENT)

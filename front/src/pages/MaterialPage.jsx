@@ -78,7 +78,8 @@ const MaterialPage = () => {
 
     setUpdatingId(materialId);
     try {
-      await materialsApi.changeMaterialCount(materialId, { delta: quantity });
+      // Исправленная строка - передаем число, а не объект
+      await materialsApi.changeMaterialCount(materialId, quantity);
       await loadMaterials();
       setQuantityInputs((prev) => ({ ...prev, [materialId]: 0 }));
     } catch (error) {
@@ -98,7 +99,7 @@ const MaterialPage = () => {
 
     setUpdatingId(materialId);
     try {
-      await materialsApi.changeMaterialCount(materialId, { delta: -quantity });
+      await materialsApi.changeMaterialCount(materialId, -quantity);
       await loadMaterials();
       setQuantityInputs((prev) => ({ ...prev, [materialId]: 0 }));
     } catch (error) {
@@ -205,7 +206,7 @@ const MaterialPage = () => {
           <p className="mt-2 text-gray-600">Загрузка материалов...</p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {materials.length === 0 ? (
             <div className="col-span-full text-center py-8">
               <p className="text-gray-500 text-lg">Материалы не найдены</p>

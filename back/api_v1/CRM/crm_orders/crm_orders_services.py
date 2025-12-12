@@ -12,6 +12,7 @@ from api_v1.CRM.crm_orders.orders_schemas import (
     OrderCreateSchema,
     OrderSchema,
     OrderFilterSchema,
+    OrderPartialUpdateSchema,
 )
 from core.models import Order, OrderProductModel, OrderProductMaterial, OrderStatus
 
@@ -62,7 +63,7 @@ async def get_orders_service(
     if filter_data.customer:
         stmt = stmt.where(Order.customer == filter_data.customer)
 
-    if filter_data.status:
+    if filter_data.status is not None:
         stmt = stmt.where(Order.status == filter_data.status)
 
     if filter_data.used_id:
@@ -104,11 +105,11 @@ async def delete_order_service(session: AsyncSession, order_id: str) -> bool:
     if not order:
         return False
 
-    if order.status == 5:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Can not add payment order with status:{order.status}",
-        )
+    # if order.status == 5:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_400_BAD_REQUEST,
+    #         detail=f"Can not add payment order with status:{order.status}",
+    #     )
 
     await session.delete(order)
     await session.commit()
@@ -186,3 +187,31 @@ async def order_complete_service(session: AsyncSession, order_id: str):
     order.status = OrderStatus.COMPLETED.value
     await session.commit()
     return {"Message": f"Order status changed:{order.status}"}
+
+
+async def partial_order_update_service(
+    session: AsyncSession,
+    order_id: str,
+    update_data: OrderPartialUpdateSchema,
+):
+    order: Order = await get_order(session=session, order_id=order_id)
+
+    if order is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"order with id:{order_id} not found",
+        )
+
+    if not update_data:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"no data for update"
+        )
+
+    if update_data.customer is not None:
+        order.customer = update_data.customer
+
+    if update_data.description is not None:
+        order.descriptions = update_data.description
+
+    await session.commit()
+    return {"Message": f"order:{order_id} updated!"}

@@ -50,7 +50,9 @@ class Order(Base):
     user: Mapped["User"] = relationship("User", back_populates="orders")
 
     ## relationships one_to_many
-    costs: Mapped[list["OrderAddCostsModel"]] = relationship(back_populates="order")
+    costs: Mapped[list["OrderAddCostsModel"]] = relationship(
+        back_populates="order", passive_deletes=True
+    )
 
     ## relationships many_to_many
 

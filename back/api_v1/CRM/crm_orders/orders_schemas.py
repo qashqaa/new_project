@@ -69,6 +69,7 @@ class OrderItemWithoutMaterials(BaseModel):
     product_id: str
     product_name: str
     product_size: str
+    product_detail: Optional[str] = None
     product_price: int
     quantity: int
     model_config = {"from_attributes": True}
@@ -92,6 +93,7 @@ class OrderItemWithMaterials(BaseModel):
     product_id: str
     product_name: str
     product_size: str
+    product_detail: Optional[str] = None
     product_price: int
     quantity: int
     materials: Optional[List[OrderProductItem]] = Field(default_factory=list)
@@ -114,7 +116,12 @@ class OrderCreateSchema(BaseModel):
     user_id: Optional[str] = None
     client_id: Optional[str] = None
     customer: str = Field(None, max_length=45, min_length=3)
-    descriptions: Optional[str] = Field(None, min_length=3, max_length=500)
+    descriptions: Optional[str] = None
+
+
+class OrderPartialUpdateSchema(BaseModel):
+    customer: Optional[str] = None
+    description: Optional[str] = None
 
 
 class OrderSchema(BaseModel):
@@ -182,6 +189,7 @@ class OrderSchema(BaseModel):
                     quantity=detail.quantity,
                     product_name=getattr(detail.product, "name", "Удален"),
                     product_size=getattr(detail.product, "size", "Неизвестно"),
+                    product_detail=getattr(detail.product, "detail", "Неизвестно"),
                     materials=[
                         OrderProductItem(
                             id=mat.id,

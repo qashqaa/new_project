@@ -18,6 +18,13 @@ async def create_order_cost_service(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"order with id:{order_id} not found",
         )
+
+    if order.status > 4:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Can append cost to order with status:{Order.status}",
+        )
+
     order_cost = OrderAddCostsModel(
         order_id=order_id,
         cost=new_cost.cost,
@@ -45,6 +52,12 @@ async def delete_order_cost_service(
     order_cost: OrderAddCostsModel | None = await session.get(
         OrderAddCostsModel, order_cost_id
     )
+
+    if order.status > 4:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Can delete cost to order with status:{Order.status}",
+        )
 
     if order_cost is None:
         raise HTTPException(

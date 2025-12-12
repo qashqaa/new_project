@@ -36,6 +36,7 @@ class Product(Base):
 
     material_detail: Mapped[list["ProductMaterialModel"]] = relationship(
         back_populates="product",
+        passive_deletes=True,
     )
 
     product_order: Mapped[list["OrderProductModel"]] = relationship(

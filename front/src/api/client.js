@@ -12,7 +12,7 @@ export const apiClient = axios.create({
 
 // Materials API
 export const materialsApi = {
-  // Получить список материалов
+  // Получить список материалов с пагинацией
   getMaterials: (params = {}) => apiClient.get('/crm/materials/', { params }),
 
   // Создать материал
@@ -31,13 +31,13 @@ export const materialsApi = {
     apiClient.delete(`/crm/materials/${materialId}`),
 
   // Изменить количество материала
-  changeMaterialCount: (materialId, data) =>
-    apiClient.patch(`/crm/materials/${materialId}/change_count`, data),
+  changeMaterialCount: (materialId, delta) =>
+    apiClient.patch(`/crm/materials/${materialId}/change_count`, { delta }),
 };
 
 // Products API
 export const productsApi = {
-  // Получить список продуктов
+  // Получить список продуктов с пагинацией
   getProducts: (params = {}) => apiClient.get('/crm/products/', { params }),
 
   // Создать продукт
@@ -63,9 +63,9 @@ export const productRelsAPI = {
     apiClient.post(`/crm/product_rels/material/${productId}`, data),
 
   // Обновить количество материала в продукте
-  updateProductMaterial: (productMaterialId, quantity) =>
+  updateProductMaterial: (productMaterialId, quantityInOneMatUnit) =>
     apiClient.patch(`/crm/product_rels/material/${productMaterialId}`, null, {
-      params: { quantity_in_one_mat_unit: quantity },
+      params: { quantity_in_one_mat_unit: quantityInOneMatUnit },
     }),
 
   // Удалить связь продукта с материалом
@@ -89,7 +89,7 @@ export const productRelsAPI = {
 
 // Orders API
 export const ordersApi = {
-  // Получить список заказов
+  // Получить список заказов с пагинацией
   getOrders: (params = {}) => apiClient.get('/crm/orders/', { params }),
 
   // Создать заказ
@@ -98,35 +98,64 @@ export const ordersApi = {
   // Получить заказ по ID
   getOrderById: (orderId) => apiClient.get(`/crm/orders/${orderId}`),
 
-  // Обновить продукты в заказе
-  updateOrderProducts: (orderId, products) =>
-    apiClient.patch(`/crm/orders/${orderId}/update_products`, products),
+  // Обновить заказ по ID
+  updateOrder: (orderId, data) => apiClient.patch(`/crm/orders/${orderId}`, data),
 
-  // Подтвердить заказ
-  confirmOrder: (orderId) =>
-    apiClient.patch(`/crm/orders/${orderId}/confirm_order`),
+  // Удалить заказ
+  deleteOrder: (orderId) => apiClient.delete(`/crm/orders/${orderId}`),
 
-  // Добавить оплату
+  // Добавить оплату к заказу
   appendPayment: (orderId, payment) =>
-    apiClient.patch(`/crm/orders/${orderId}/append_payment`, null, {
+    apiClient.patch(`/crm/orders/append_payment/${orderId}`, null, {
       params: { payment },
     }),
 
-  // Добавить материалы к заказу
-  appendMaterials: (orderId, materials) =>
-    apiClient.patch(`/crm/orders/${orderId}/append_materials`, materials),
-
-  // Отметить заказ как готовый
-  readyOrder: (orderId) =>
-    apiClient.patch(`/crm/orders/${orderId}/order_ready`),
-
   // Завершить заказ
   completeOrder: (orderId) =>
-    apiClient.patch(`/crm/orders/${orderId}/order_complete`),
+    apiClient.patch(`/crm/orders/order_complete/${orderId}`),
 
-  // Отменить заказ
-  cancelOrder: (orderId) =>
-    apiClient.patch(`/crm/orders/${orderId}/order_cancel`),
+  // === УПРАВЛЕНИЕ ТОВАРАМИ В ЗАКАЗЕ ===
+
+  // Добавить продукт в заказ
+  addProductToOrder: (orderId, data) =>
+    apiClient.post(`/crm/orders/${orderId}/order_products/`, data),
+
+  // Изменить количество продукта в заказе
+  updateProductQuantity: (orderId, orderProductId, newCount) =>
+    apiClient.patch(
+      `/crm/orders/${orderId}/order_products/${orderProductId}`,
+      null,
+      { params: { new_count: newCount } }
+    ),
+
+  // Удалить продукт из заказа
+  deleteProductFromOrder: (orderId, orderProductId) =>
+    apiClient.delete(`/crm/orders/${orderId}/order_products/${orderProductId}`),
+
+  // === УПРАВЛЕНИЕ ФАКТИЧЕСКИМ ИСПОЛЬЗОВАНИЕМ МАТЕРИАЛОВ ===
+
+  // Изменить фактическое использование материала
+  changeActualUsage: (orderId, orderProductId, orderProductMaterialId, actualUsage) =>
+    apiClient.patch(
+      `/crm/${orderId}/${orderProductId}/${orderProductMaterialId}`,
+      null,
+      { params: { actual_usage: actualUsage } }
+    ),
+
+  // === ДОПОЛНИТЕЛЬНЫЕ РАСХОДЫ ===
+
+  // Добавить дополнительный расход
+  addCost: (orderId, data) =>
+    apiClient.post(`/crm/${orderId}/costs/`, data),
+
+  // Удалить дополнительный расход
+  deleteCost: (orderId, orderCostId) =>
+    apiClient.delete(`/crm/${orderId}/costs/${orderCostId}`),
+};
+
+// Backup API
+export const backupApi = {
+  sendMsg: () => apiClient.get('/backup/'),
 };
 
 // Dev API (для тестирования)
@@ -134,48 +163,61 @@ export const devApi = {
   start: () => apiClient.get('/'),
 };
 
-// Схемы данных (для справки)
+// Схемы данных (обновлены на основе OpenAPI)
 export const schemas = {
   MaterialCreate: {
-    name: '', // string, required, название материала
-    material_type: '', // string, required, тип материала
-    detail: '', // string | null, детали
-    description: '', // string | null, описание
-    count_in_one_pack: 0, // integer, required, количество в упаковке
-    pack_price: 0, // number, required, цена упаковки
-    count_left: 0, // integer, required, остаток на складе
+    name: '', // string, required, maxLength: 100, minLength: 1
+    material_type: '', // string, required, maxLength: 50, minLength: 1
+    detail: '', // string | null, maxLength: 500
+    description: '', // string | null, maxLength: 1000
+    count_in_one_pack: 0, // integer, required, minimum: 0
+    pack_price: 0, // number, required, minimum: 0
+    count_left: 0, // integer, required, minimum: 0
+  },
+
+  MaterialAppend: {
+    delta: 0, // integer, required, minimum: -1000, maximum: 1000
   },
 
   ProductCreate: {
-    name: '', // string, required, название продукта
-    size: '', // string, required, размеры
-    detail: '', // string | null, дополнительная информация
-    description: '', // string | null, описание продукта
+    name: '', // string, required, maxLength: 100, minLength: 1
+    size: '', // string, required, maxLength: 100, minLength: 1
+    detail: '', // string | null, maxLength: 100, minLength: 1
+    description: '', // string | null, maxLength: 1000, minLength: 1
   },
 
   OrderCreate: {
     user_id: '', // string | null
     client_id: '', // string | null
-    customer: '', // string, required
-    products_detail: [
-      // array of OrderItemCreate, required
-      {
-        product_id: '', // string, required
-        quantity: 0, // integer, required
-      },
-    ],
+    customer: '', // string, required, maxLength: 45, minLength: 3
+    descriptions: '', // string | null, maxLength: 500, minLength: 3
+  },
+
+  OrderUpdate: {
+    customer: '', // string | null
+    description: '', // string | null
+  },
+
+  OrderItemCreate: {
+    product_id: '', // string, required
+    quantity: 0, // integer, required, exclusiveMinimum: 0
   },
 
   ProductMaterialCreate: {
     material_id: '', // string, required
-    quantity_in_one_mat_unit: 0, // integer, required
+    quantity_in_one_mat_unit: 0, // integer, required, exclusiveMinimum: 0
   },
 
   ProductPriceCreate: {
     start: 0, // integer, required
     end: 0, // integer, required
-    price: 0, // integer, required
-    description: '', // string | null
+    price: 0, // integer, required, minimum: 0
+    description: '', // string | null, minLength: 3
+  },
+
+  CreateOrderAdditionalCost: {
+    cost: 0, // integer | number, required
+    description: '', // string, required
   },
 };
 
@@ -193,6 +235,7 @@ export default {
   products: productsApi,
   productRels: productRelsAPI,
   orders: ordersApi,
+  backup: backupApi,
   dev: devApi,
   schemas,
 };
