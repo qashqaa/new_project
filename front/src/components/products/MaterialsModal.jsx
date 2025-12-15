@@ -40,6 +40,7 @@ const MaterialsModal = ({
             material_id: values.material_id,
             material_name: newMaterial.name,
             material_type: newMaterial.material_type,
+            material_detail: newMaterial.detail,
             quantity_in_one_mat_unit: values.quantity_in_one_mat_unit,
           };
           setProductMaterials((prev) => [...prev, materialToAdd]);
@@ -74,6 +75,11 @@ const MaterialsModal = ({
       title: 'Материал',
       dataIndex: 'material_name',
       key: 'material_name',
+    },
+    {
+      title: 'Детали',
+      dataIndex: 'material_detail',
+      key: 'material_detail',
     },
     {
       title: 'Тип',
@@ -125,7 +131,7 @@ const MaterialsModal = ({
             <Select placeholder="Выберите материал">
               {materials.map((material) => (
                 <Select.Option key={material.id} value={material.id}>
-                  {material.name} ({material.material_type})
+                  {material.name} ({material.material_type} {material.detail})
                 </Select.Option>
               ))}
             </Select>
