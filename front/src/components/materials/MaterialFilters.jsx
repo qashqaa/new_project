@@ -40,6 +40,8 @@ const MaterialFilters = ({
           <option value="дизайнерская бумага">дизайнерская бумага</option>
           <option value="ленты">ленты</option>
           <option value="биркодержатели">биркодержатели</option>
+          <option value="риббон">риббон</option>
+          <option value="структурная бумага">структурная бумага</option>
         </select>
 
         <button

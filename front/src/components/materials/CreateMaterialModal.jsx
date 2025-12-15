@@ -101,6 +101,8 @@ const CreateMaterialModal = ({ isOpen, onClose, onMaterialCreated }) => {
                             <option value="дизайнерская бумага">Дизайнерская бумага</option>
                             <option value="ленты">Ленты</option>
                             <option value="биркодержатели">Биркодержатели</option>
+                            <option value="риббон">Риббон</option>
+                            <option value="структурная бумага">Структурная бумага</option>
                             <option value="другое">Другое</option>
                         </select>
                     </div>

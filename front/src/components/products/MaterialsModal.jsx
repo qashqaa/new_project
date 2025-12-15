@@ -39,7 +39,6 @@ const MaterialsModal = ({
             id: Date.now(), // временный ID
             material_id: values.material_id,
             material_name: newMaterial.name,
-            material_type: newMaterial.material_type,
             material_detail: newMaterial.detail,
             quantity_in_one_mat_unit: values.quantity_in_one_mat_unit,
           };
@@ -131,7 +130,7 @@ const MaterialsModal = ({
             <Select placeholder="Выберите материал">
               {materials.map((material) => (
                 <Select.Option key={material.id} value={material.id}>
-                  {material.name} ({material.material_type} {material.detail})
+                  {material.name}  ({material.detail})
                 </Select.Option>
               ))}
             </Select>
