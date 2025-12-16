@@ -124,7 +124,7 @@ async def order_product_count_change_service(
         )
 
     session.add(order_product)
-    order.total_price += order.products_price
+    order.total_price = order.products_price
     await session.commit()
     return {"Message": "CHANGED!"}
 
