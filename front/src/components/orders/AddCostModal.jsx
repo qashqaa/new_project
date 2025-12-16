@@ -16,8 +16,11 @@ const AddCostModal = ({ open, onClose, orderId, onSuccess }) => {
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
+      // Удаляем пробелы из суммы перед отправкой на бэк
+      const cleanCost = values.cost.toString().replace(/\s/g, '');
+
       await ordersApi.addCost(orderId, {
-        cost: values.cost,
+        cost: Number(cleanCost), // или cleanCost, если бэк ожидает строку
         description: values.description,
       });
       message.success('Расход добавлен');
@@ -32,7 +35,7 @@ const AddCostModal = ({ open, onClose, orderId, onSuccess }) => {
 
   // Форматирование числа для отображения
   const formatter = (value) => {
-    if (!value) return '';
+    if (!value && value !== 0) return '';
     return `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
   };
 
@@ -69,6 +72,11 @@ const AddCostModal = ({ open, onClose, orderId, onSuccess }) => {
           name="cost"
           label="Сумма"
           rules={[{ required: true, message: 'Введите сумму' }]}
+          normalize={(value) => {
+            // Нормализуем значение для формы
+            if (!value && value !== 0) return value;
+            return value.toString().replace(/\s/g, '');
+          }}
         >
           <Space.Compact style={{ width: '100%' }}>
             <InputNumber
@@ -78,6 +86,8 @@ const AddCostModal = ({ open, onClose, orderId, onSuccess }) => {
               style={{ width: '100%' }}
               formatter={formatter}
               parser={parser}
+              // Дополнительно: используем type="text" чтобы точно контролировать значение
+              stringMode
             />
             <span
               style={{

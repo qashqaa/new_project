@@ -1,6 +1,6 @@
 // src/pages/ProductPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { message, Modal } from 'antd';
+import { message, Modal, Pagination } from 'antd';
 import ProductFilter from '../components/products/ProductFilter';
 import ProductCard from '../components/products/ProductCard';
 import ProductModal from '../components/products/ProductModal';
@@ -12,6 +12,12 @@ const ProductPage = () => {
   const [products, setProducts] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState({
+    total: 0,
+    current: 1,
+    pageSize: 12,
+  });
+
   const [filters, setFilters] = useState({
     skip: 0,
     limit: 12,
@@ -33,6 +39,13 @@ const ProductPage = () => {
       setLoading(true);
       const response = await productsApi.getProducts(filters);
       setProducts(response.data.items || []);
+
+      // Обновляем пагинацию с общим количеством продуктов
+      setPagination(prev => ({
+        ...prev,
+        total: response.data.total || response.data.count || 0,
+        current: Math.floor(filters.skip / filters.limit) + 1,
+      }));
     } catch (error) {
       message.error('Ошибка загрузки продуктов');
     } finally {
@@ -61,6 +74,12 @@ const ProductPage = () => {
   // Обработчики фильтров
   const handleFiltersChange = useCallback((newFilters) => {
     setFilters((prev) => ({ ...prev, ...newFilters, skip: 0 }));
+  }, []);
+
+  // Обработчик изменения страницы
+  const handlePageChange = useCallback((page, pageSize) => {
+    const newSkip = (page - 1) * pageSize;
+    setFilters(prev => ({ ...prev, skip: newSkip, limit: pageSize }));
   }, []);
 
   const handleSortOrder = useCallback(() => {
@@ -134,27 +153,49 @@ const ProductPage = () => {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onEdit={(product) => {
-                setSelectedProduct(product);
-                setEditModalVisible(true);
-              }}
-              onDelete={handleDeleteProduct}
-              onManageMaterials={(product) => {
-                setSelectedProduct(product);
-                setMaterialsModalVisible(true);
-              }}
-              onManagePrices={(product) => {
-                setSelectedProduct(product);
-                setPricesModalVisible(true);
-              }}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onEdit={(product) => {
+                  setSelectedProduct(product);
+                  setEditModalVisible(true);
+                }}
+                onDelete={handleDeleteProduct}
+                onManageMaterials={(product) => {
+                  setSelectedProduct(product);
+                  setMaterialsModalVisible(true);
+                }}
+                onManagePrices={(product) => {
+                  setSelectedProduct(product);
+                  setPricesModalVisible(true);
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Пагинация */}
+          {pagination.total > pagination.pageSize && (
+            <div className="flex justify-center mt-6">
+              <Pagination
+                current={pagination.current}
+                total={pagination.total}
+                pageSize={pagination.pageSize}
+                onChange={handlePageChange}
+                showSizeChanger
+                pageSizeOptions={['12', '24', '48', '96']}
+                showTotal={(total, range) =>
+                  `${range[0]}-${range[1]} из ${total} продуктов`
+                }
+                locale={{
+                  items_per_page: 'продуктов на странице',
+                }}
+              />
+            </div>
+          )}
+        </>
       )}
 
       {/* Модалки */}
@@ -178,14 +219,14 @@ const ProductPage = () => {
         onCancel={() => setMaterialsModalVisible(false)}
         product={selectedProduct}
         materials={materials}
-        onProductUpdate={loadProducts} // ← вот это добавить
+        onProductUpdate={loadProducts}
       />
 
       <PricesModal
         visible={pricesModalVisible}
         onCancel={() => setPricesModalVisible(false)}
         product={selectedProduct}
-        onProductUpdate={loadProducts} // ← эта функция перезагружает продукты
+        onProductUpdate={loadProducts}
       />
     </div>
   );
