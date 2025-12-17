@@ -113,7 +113,17 @@ async def order_product_count_change_service(
             detail=f"in order:{order_id} not found order_product:{order_product_id}",
         )
 
+    product: Product = await get_product(
+        session=session, product_id=order_product.product_id
+    )
+    if product is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"product with id:{order_product.product_id} not found",
+        )
+
     order_product.quantity = new_count
+    order_product.product_price = product.give_product_price(new_count)
 
     for elem in order_product.materials:  # type: OrderProductMaterial
         elem.actual_usage = materials_count(

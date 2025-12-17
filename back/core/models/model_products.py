@@ -66,6 +66,9 @@ class Product(Base):
 
         # Если не нашли подходящий диапазон, берем минимальную цену
         if self.price_tier:
+            starts = (sp.start for sp in self.price_tier)
+            if quantity < min(starts):
+                return max(self.price_tier).price
             return min(self.price_tier).price  # ← .price!
 
         return 0
