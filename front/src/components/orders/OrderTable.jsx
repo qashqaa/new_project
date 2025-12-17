@@ -84,21 +84,39 @@ const OrderTable = ({
       dataIndex: 'paid',
       key: 'paid',
       width: 150,
-      render: (paid, record) => {
+      render: (paid) => formatCurrency(paid || 0),
+      sorter: true,
+    },
+    {
+      title: 'Остаток',
+      key: 'remainder',
+      width: 150,
+      render: (_, record) => {
         const totalPrice = record.total_price || 0;
-        const paidAmount = paid || 0;
-        const percentage = totalPrice > 0 ? Math.round((paidAmount / totalPrice) * 100) : 0;
+        const paidAmount = record.paid || 0;
+        const remainder = totalPrice - paidAmount;
+
+        // Если остаток отрицательный (переплата), показываем 0
+        const displayRemainder = remainder > 0 ? remainder : 0;
 
         return (
           <div>
-            <div>{formatCurrency(paidAmount)}</div>
-            <div className="text-xs text-gray-500">
-              {percentage}%
+            <div className={displayRemainder > 0 ? 'text-red-600 font-medium' : 'text-green-600 font-medium'}>
+              {formatCurrency(displayRemainder)}
             </div>
+            {remainder < 0 && (
+              <div className="text-xs text-green-500">
+                Переплата: {formatCurrency(Math.abs(remainder))}
+              </div>
+            )}
           </div>
         );
       },
-      sorter: true,
+      sorter: (a, b) => {
+        const remainderA = (a.total_price || 0) - (a.paid || 0);
+        const remainderB = (b.total_price || 0) - (b.paid || 0);
+        return remainderA - remainderB;
+      },
     },
     {
       title: 'Дата создания',
@@ -114,6 +132,11 @@ const OrderTable = ({
       width: 200,
       fixed: 'right',
       render: (_, record) => {
+        const totalPrice = record.total_price || 0;
+        const paidAmount = record.paid || 0;
+        const remainder = totalPrice - paidAmount;
+        const isFullyPaid = remainder <= 0;
+
         return (
           <Space>
             <Tooltip title="Просмотреть детали">
@@ -126,11 +149,13 @@ const OrderTable = ({
 
             {record.status !== ORDER_STATUS.COMPLETED && record.status !== ORDER_STATUS.CANCELED && (
               <>
-                <Tooltip title="Добавить оплату">
+                <Tooltip title={isFullyPaid ? "Заказ полностью оплачен" : "Добавить оплату"}>
                   <Button
                     type="text"
                     icon={<DollarOutlined />}
                     onClick={() => handleAppendPaymentClick(record.id)}
+                    disabled={isFullyPaid}
+                    style={{ opacity: isFullyPaid ? 0.5 : 1 }}
                   />
                 </Tooltip>
 
@@ -177,10 +202,15 @@ const OrderTable = ({
         loading={loading}
         pagination={pagination}
         onChange={onTableChange}
-        scroll={{ x: 1200 }}
+        scroll={{ x: 1300 }} // Увеличил ширину для нового столбца
         rowClassName={(record) => {
+          const totalPrice = record.total_price || 0;
+          const paidAmount = record.paid || 0;
+          const remainder = totalPrice - paidAmount;
+
           if (record.status === ORDER_STATUS.COMPLETED) return 'bg-green-50';
           if (record.status === ORDER_STATUS.CANCELED) return 'bg-red-50';
+          if (remainder <= 0) return 'bg-blue-50'; // Полностью оплаченные заказы
           return '';
         }}
         locale={{
