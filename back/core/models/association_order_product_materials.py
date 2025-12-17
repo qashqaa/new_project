@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, UniqueConstraint
+from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.models.base import Base
@@ -12,19 +12,15 @@ if TYPE_CHECKING:
 
 class OrderProductMaterial(Base):
     __tablename__ = "order_product_materials"
-    __table_args__ = (
-        UniqueConstraint(
-            "order_product_id",
-            "material_id",
-            name="idx_unique_order_product_material",
-        ),
-    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     order_product_id: Mapped[int] = mapped_column(
         ForeignKey("order_product_association.id", ondelete="cascade")
     )
-    material_id: Mapped[str] = mapped_column(ForeignKey("materials.id"))
+    material_id: Mapped[str] = mapped_column(
+        ForeignKey("materials.id", ondelete="cascade"),
+        nullable=True,
+    )
 
     qty_prod_in_mat: Mapped[int] = mapped_column(default=0, server_default="0")
     budged_usage: Mapped[int] = mapped_column(default=0, server_default="0")

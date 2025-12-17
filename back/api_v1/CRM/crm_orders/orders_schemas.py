@@ -35,7 +35,7 @@ class OrderAdditionalCoastSchema(BaseModel):
 class OrderProductItem(BaseModel):
     id: int
     order_product_id: int
-    material_id: str
+    material_id: Optional[str] = None
     material_name: str
     material_type: str
     qty_prod_in_mat: int
@@ -66,7 +66,7 @@ class OrderItemCreate(BaseModel):
 class OrderItemWithoutMaterials(BaseModel):
     id: int
     order_id: str
-    product_id: str
+    product_id: Optional[str] = None
     product_name: str
     product_size: str
     product_detail: Optional[str] = None
@@ -90,7 +90,7 @@ class OrderItemWithoutMaterials(BaseModel):
 class OrderItemWithMaterials(BaseModel):
     id: int
     order_id: str
-    product_id: str
+    product_id: Optional[str] = None
     product_name: str
     product_size: str
     product_detail: Optional[str] = None
@@ -184,7 +184,7 @@ class OrderSchema(BaseModel):
                 OrderItemWithMaterials(
                     id=detail.id,
                     order_id=detail.order_id,
-                    product_id=detail.product_id,
+                    product_id=getattr(detail.product_id, "product_id", None),
                     product_price=detail.product_price,
                     quantity=detail.quantity,
                     product_name=getattr(detail.product, "name", "Удален"),
@@ -193,7 +193,7 @@ class OrderSchema(BaseModel):
                     materials=[
                         OrderProductItem(
                             id=mat.id,
-                            material_id=mat.material_id,
+                            material_id=getattr(mat.material_id, "material_id", None),
                             order_product_id=mat.order_product_id,
                             material_name=getattr(
                                 mat.material, "name", "Материал удален"

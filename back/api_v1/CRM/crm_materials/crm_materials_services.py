@@ -166,12 +166,6 @@ async def delete_material_service(session: AsyncSession, material_id: str):
             detail=f"Material '{material_id}' not found",
         )
 
-    if material.orders_with_material:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"Deletion impossible: the material with id:{material_id} is used in other posts ",
-        )
-
     # Затем удаляем
     stmt = delete(Material).where(Material.id == material_id)
     await session.execute(stmt)

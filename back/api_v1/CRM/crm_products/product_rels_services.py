@@ -3,6 +3,7 @@ from pydantic.v1 import PositiveInt
 from sqlalchemy import Result, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.functions import session_user
+from pydantic import Field
 
 from api_v1.CRM.crm_materials.material_CRUD import get_material_by_id
 from api_v1.CRM.crm_products.product_CRUD import get_product
@@ -81,7 +82,8 @@ async def update_product_material_service(
 
 
 async def delete_product_material_service(
-    session: AsyncSession, product_material_id: int
+    session: AsyncSession,
+    product_material_id: int,
 ):
     # Если в модели есть cascade="all, delete-orphan"
     product_material = await session.get(ProductMaterialModel, product_material_id)

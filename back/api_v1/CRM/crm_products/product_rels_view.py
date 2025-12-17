@@ -1,5 +1,7 @@
-from fastapi import APIRouter, status
-from pydantic import PositiveInt
+from typing import Annotated
+
+from fastapi import APIRouter, status, Depends
+from pydantic import PositiveInt, Field
 
 from api_v1.CRM.crm_products.product_rels_schemas import (
     ProductMaterialCreateSchema,
@@ -32,7 +34,9 @@ async def crm_product_material_create(
 
 @router.patch("/material/{product_material_id}")
 async def crm_product_material_update(
-    session: SessionDepPG, product_material_id: int, quantity_in_one_mat_unit: PositiveInt
+    session: SessionDepPG,
+    product_material_id: int,
+    quantity_in_one_mat_unit: PositiveInt,
 ):
     await update_product_material_service(
         session=session,
@@ -45,7 +49,9 @@ async def crm_product_material_update(
 @router.delete(
     "/material/{product_material_id}", status_code=status.HTTP_204_NO_CONTENT
 )
-async def crm_product_material_delete(session: SessionDepPG, product_material_id: int):
+async def crm_product_material_delete(
+    session: SessionDepPG, product_material_id: Annotated[int, Field(gt=0, le=1000000)]
+):
     await delete_product_material_service(
         session=session, product_material_id=product_material_id
     )

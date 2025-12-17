@@ -1,22 +1,22 @@
-// src/pages/ProductPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { message, Modal, Pagination } from 'antd';
+import { message, Modal, Card, Row, Col, Button, Space, Typography, Spin, Empty } from 'antd';
+import { ReloadOutlined, PlusOutlined, UpOutlined } from '@ant-design/icons';
 import ProductFilter from '../components/products/ProductFilter';
 import ProductCard from '../components/products/ProductCard';
 import ProductModal from '../components/products/ProductModal';
 import MaterialsModal from '../components/products/MaterialsModal';
 import PricesModal from '../components/products/PricesModal';
+import ProductPagination from '../components/products/ProductPagination'; // ← новый импорт
+import CreateProductForm from '../components/products/CreateProductForm';
 import { productsApi, materialsApi } from '../api/client';
+
+const { Title } = Typography;
 
 const ProductPage = () => {
   const [products, setProducts] = useState([]);
   const [materials, setMaterials] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({
-    total: 0,
-    current: 1,
-    pageSize: 12,
-  });
+  const [loading, setLoading] = useState(false);
+  const [total, setTotal] = useState(0);
 
   const [filters, setFilters] = useState({
     skip: 0,
@@ -26,12 +26,12 @@ const ProductPage = () => {
     sort_order: 'asc',
   });
 
-  // Модалки
-  const [createModalVisible, setCreateModalVisible] = useState(false);
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [materialsModalVisible, setMaterialsModalVisible] = useState(false);
-  const [pricesModalVisible, setPricesModalVisible] = useState(false);
+  // Модалки редактирования
+  const [activeModal, setActiveModal] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
+
+  // Сворачиваемая форма создания
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   // Загрузка продуктов
   const loadProducts = useCallback(async () => {
@@ -39,19 +39,13 @@ const ProductPage = () => {
       setLoading(true);
       const response = await productsApi.getProducts(filters);
       setProducts(response.data.items || []);
-
-      // Обновляем пагинацию с общим количеством продуктов
-      setPagination(prev => ({
-        ...prev,
-        total: response.data.total || response.data.count || 0,
-        current: Math.floor(filters.skip / filters.limit) + 1,
-      }));
+      setTotal(response.data.total || response.data.count || 0);
     } catch (error) {
       message.error('Ошибка загрузки продуктов');
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters]); // ← зависит от filters
 
   // Загрузка материалов
   const loadMaterials = useCallback(async () => {
@@ -63,57 +57,55 @@ const ProductPage = () => {
     }
   }, []);
 
+  // Загружаем продукты при изменении фильтров
   useEffect(() => {
     loadProducts();
-  }, [loadProducts]);
+  }, [filters, loadProducts]);
 
+  // Загружаем материалы один раз
   useEffect(() => {
     loadMaterials();
   }, [loadMaterials]);
 
-  // Обработчики фильтров
+  // Обработчик изменения фильтров (для пагинации)
   const handleFiltersChange = useCallback((newFilters) => {
-    setFilters((prev) => ({ ...prev, ...newFilters, skip: 0 }));
+    setFilters(prev => ({ ...prev, ...newFilters }));
+    // loadProducts() вызовется автоматически через useEffect выше
   }, []);
 
-  // Обработчик изменения страницы
-  const handlePageChange = useCallback((page, pageSize) => {
-    const newSkip = (page - 1) * pageSize;
-    setFilters(prev => ({ ...prev, skip: newSkip, limit: pageSize }));
-  }, []);
-
-  const handleSortOrder = useCallback(() => {
-    setFilters((prev) => ({
-      ...prev,
-      sort_order: prev.sort_order === 'asc' ? 'desc' : 'asc',
-    }));
-  }, []);
-
-  const getSortIcon = useCallback(
-    (field) => {
-      if (filters.sort_by !== field) return '';
-      return filters.sort_order === 'asc' ? '⬆️' : '⬇️';
-    },
-    [filters.sort_by, filters.sort_order]
-  );
-
-  // CRUD операции
-  const handleCreateProduct = async (values) => {
-    try {
-      await productsApi.createProduct(values);
-      message.success('Продукт создан');
-      setCreateModalVisible(false);
-      loadProducts();
-    } catch (error) {
-      message.error('Ошибка создания продукта');
-    }
+  // Открытие модалок редактирования
+  const openEditModal = (product) => {
+    setSelectedProduct(product);
+    setActiveModal('edit');
   };
 
+  const openMaterialsModal = (product) => {
+    setSelectedProduct(product);
+    setActiveModal('materials');
+  };
+
+  const openPricesModal = (product) => {
+    setSelectedProduct(product);
+    setActiveModal('prices');
+  };
+
+  // Закрытие всех модалок
+  const closeModal = () => {
+    setActiveModal(null);
+    setSelectedProduct(null);
+  };
+
+  // Переключение формы создания
+  const toggleCreateForm = () => {
+    setShowCreateForm(!showCreateForm);
+  };
+
+  // CRUD операции
   const handleEditProduct = async (values) => {
     try {
       await productsApi.updateProduct(selectedProduct.id, values);
       message.success('Продукт обновлен');
-      setEditModalVisible(false);
+      closeModal();
       loadProducts();
     } catch (error) {
       message.error('Ошибка обновления продукта');
@@ -136,98 +128,148 @@ const ProductPage = () => {
     });
   };
 
+  // Обновление после работы с материалами/ценами
+  const handleProductUpdate = () => {
+    loadProducts();
+  };
+
+  // После успешного создания
+  const handleCreateSuccess = () => {
+    loadProducts();
+    setShowCreateForm(false);
+  };
+
   return (
     <div className="p-6">
-      <ProductFilter
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-        onReload={loadProducts}
-        getSortIcon={getSortIcon}
-        handleSortOrder={handleSortOrder}
-        openCreateModal={() => setCreateModalVisible(true)}
-      />
+      {/* Заголовок */}
+      <div className="mb-8">
+        <Row justify="space-between" align="middle">
+          <Col>
+            <Title level={2} className="mb-0">
+              Продукты
+            </Title>
+          </Col>
+          <Col>
+            <Space>
+              <Button
+                type="primary"
+                icon={showCreateForm ? <UpOutlined /> : <PlusOutlined />}
+                onClick={toggleCreateForm}
+              >
+                {showCreateForm ? 'Скрыть форму' : 'Создать продукт'}
+              </Button>
+            </Space>
+          </Col>
+        </Row>
+      </div>
 
-      {/* Список продуктов */}
-      {loading ? (
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      {/* Форма создания продукта */}
+      {showCreateForm && (
+        <div className="mb-8">
+          <Card>
+            <CreateProductForm
+              onSuccess={handleCreateSuccess}
+              showTitle={false}
+            />
+          </Card>
         </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onEdit={(product) => {
-                  setSelectedProduct(product);
-                  setEditModalVisible(true);
-                }}
-                onDelete={handleDeleteProduct}
-                onManageMaterials={(product) => {
-                  setSelectedProduct(product);
-                  setMaterialsModalVisible(true);
-                }}
-                onManagePrices={(product) => {
-                  setSelectedProduct(product);
-                  setPricesModalVisible(true);
-                }}
-              />
-            ))}
-          </div>
-
-          {/* Пагинация */}
-          {pagination.total > pagination.pageSize && (
-            <div className="flex justify-center mt-6">
-              <Pagination
-                current={pagination.current}
-                total={pagination.total}
-                pageSize={pagination.pageSize}
-                onChange={handlePageChange}
-                showSizeChanger
-                pageSizeOptions={['12', '24', '48', '96']}
-                showTotal={(total, range) =>
-                  `${range[0]}-${range[1]} из ${total} продуктов`
-                }
-                locale={{
-                  items_per_page: 'продуктов на странице',
-                }}
-              />
-            </div>
-          )}
-        </>
       )}
 
-      {/* Модалки */}
-      <ProductModal
-        visible={createModalVisible}
-        onCancel={() => setCreateModalVisible(false)}
-        onSave={handleCreateProduct}
-        title="Создать продукт"
-      />
+      {/* Фильтры */}
+      <div className="mb-8">
+        <Card className="mb-4">
+          <ProductFilter
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            onReload={loadProducts}
+            onOpenCreateForm={toggleCreateForm}
+          />
+        </Card>
+      </div>
 
-      <ProductModal
-        visible={editModalVisible}
-        onCancel={() => setEditModalVisible(false)}
-        onSave={handleEditProduct}
-        product={selectedProduct}
-        title="Редактировать продукт"
-      />
+      {/* Список продуктов */}
+      <Card>
+        {loading && products.length === 0 ? (
+          <div className="text-center py-12">
+            <Spin size="large" />
+            <p className="mt-4 text-gray-500">Загрузка продуктов...</p>
+          </div>
+        ) : products.length === 0 ? (
+          <div className="text-center py-12">
+            <Empty
+              description="Продукты не найдены"
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+            />
+            {filters.search && (
+              <Button
+                type="link"
+                onClick={() => handleFiltersChange({ search: '' })}
+                className="mt-2"
+              >
+                Очистить поиск
+              </Button>
+            )}
+          </div>
+        ) : (
+          <>
 
-      <MaterialsModal
-        visible={materialsModalVisible}
-        onCancel={() => setMaterialsModalVisible(false)}
-        product={selectedProduct}
-        materials={materials}
-        onProductUpdate={loadProducts}
-      />
+            {/* Сетка карточек */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+              {products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onEdit={openEditModal}
+                  onDelete={handleDeleteProduct}
+                  onManageMaterials={openMaterialsModal}
+                  onManagePrices={openPricesModal}
+                />
+              ))}
+            </div>
 
-      <PricesModal
-        visible={pricesModalVisible}
-        onCancel={() => setPricesModalVisible(false)}
-        product={selectedProduct}
-        onProductUpdate={loadProducts}
-      />
+            {/* Пагинация */}
+            <ProductPagination
+              filters={filters}
+              products={products}
+              total={total}
+              onFiltersChange={handleFiltersChange}
+            />
+          </>
+        )}
+      </Card>
+
+      {/* Модалки редактирования */}
+      {activeModal === 'edit' && selectedProduct && (
+        <ProductModal
+          key={`edit-${selectedProduct.id}`}
+          open={true}
+          onClose={closeModal}
+          onSave={handleEditProduct}
+          product={selectedProduct}
+          title="Редактировать продукт"
+        />
+      )}
+
+      {activeModal === 'materials' && selectedProduct && (
+        <MaterialsModal
+          key={`materials-${selectedProduct.id}`}
+          visible={true}
+          onCancel={closeModal}
+          productId={selectedProduct.id}
+          materials={materials}
+          onProductUpdate={handleProductUpdate}
+        />
+      )}
+
+      {activeModal === 'prices' && selectedProduct && (
+        <PricesModal
+          key={`prices-${selectedProduct.id}`}
+          visible={true}
+          onCancel={closeModal}
+          productId={selectedProduct.id}
+          onProductUpdate={handleProductUpdate}
+        />
+      )}
     </div>
   );
 };

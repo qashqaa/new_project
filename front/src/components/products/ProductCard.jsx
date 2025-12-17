@@ -1,4 +1,3 @@
-// src/components/products/ProductCard.jsx
 import React from 'react';
 import {
   EditOutlined,
@@ -8,12 +7,12 @@ import {
 } from '@ant-design/icons';
 
 const ProductCard = ({
-  product,
-  onEdit,
-  onDelete,
-  onManageMaterials,
-  onManagePrices,
-}) => {
+                       product,
+                       onEdit,
+                       onDelete,
+                       onManageMaterials,
+                       onManagePrices,
+                     }) => {
   return (
     <div className="bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
       {/* Заголовок и кнопки действий */}
@@ -45,7 +44,7 @@ const ProductCard = ({
         </div>
       </div>
 
-      {/* Материалы */}
+      {/* Материалы - ПРОСТОЙ СПИСОК */}
       <div className="mb-3">
         <h4 className="font-medium text-sm text-gray-700 mb-2">Материалы:</h4>
         <div className="space-y-1">
@@ -68,7 +67,7 @@ const ProductCard = ({
         </div>
       </div>
 
-      {/* Цены */}
+      {/* Цены - ПРОСТОЙ СПИСОК */}
       <div className="mb-4">
         <h4 className="font-medium text-sm text-gray-700 mb-2">Цены:</h4>
         <div className="space-y-1">
@@ -78,7 +77,7 @@ const ProductCard = ({
                 {price.start}-{price.end} шт.
               </span>
               <span className="text-green-600 font-medium">
-                {price.price} UZS
+                {new Intl.NumberFormat('ru-RU').format(price.price)} UZS
               </span>
             </div>
           ))}

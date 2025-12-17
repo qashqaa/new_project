@@ -36,7 +36,7 @@ class Product(Base):
 
     material_detail: Mapped[list["ProductMaterialModel"]] = relationship(
         back_populates="product",
-        passive_deletes=True,
+        passive_deletes="all",
     )
 
     product_order: Mapped[list["OrderProductModel"]] = relationship(
@@ -45,6 +45,7 @@ class Product(Base):
 
     price_tier: Mapped[list["ProductPriceTier"]] = relationship(
         back_populates="product",
+        passive_deletes="all",
     )
 
     def __str__(self):

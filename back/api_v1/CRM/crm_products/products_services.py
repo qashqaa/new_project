@@ -157,12 +157,6 @@ async def delete_product_service(session: AsyncSession, product_id: str):
             detail=f"Product '{product_id}' not found",
         )
 
-    if product.product_order or product.price_tier:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"Deletion impossible: the product with id:{product_id} is used in other posts",
-        )
-
     await session.delete(product)
     await session.commit()
 
