@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from pydantic import Field
-from fastapi import APIRouter, status, Depends, HTTPException
+from fastapi import APIRouter, status, Depends
 
 from api_v1.CRM.crm_expenses_and_income.expenses_service import (
     create_expense_service,

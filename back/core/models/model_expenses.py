@@ -9,6 +9,7 @@ class ExpenseModel(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     expense_type: Mapped[str]
+    periodicity: Mapped[str]
     description: Mapped[str | None]
     amount: Mapped[int]
     create_at: Mapped[datetime] = mapped_column(

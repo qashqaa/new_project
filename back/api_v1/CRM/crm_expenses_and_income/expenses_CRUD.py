@@ -1,7 +1,6 @@
 from datetime import date
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, Result
 
 from core.models.model_expenses import ExpenseModel
 
@@ -9,12 +8,14 @@ from core.models.model_expenses import ExpenseModel
 async def create_expense(
     session: AsyncSession,
     expense_type: str,
+    periodicity: str,
     amount: int,
     actual_date: date = date.today(),
     description: str = None,
 ) -> ExpenseModel:
     new_expense = ExpenseModel(
         expense_type=expense_type,
+        periodicity=periodicity,
         amount=amount,
         description=description,
         actual_date=actual_date,
@@ -35,6 +36,7 @@ async def partial_update_expense(
     session: AsyncSession,
     expense: ExpenseModel,
     expense_type: str = None,
+    periodicity: str = None,
     description: str = None,
     amount: int = None,
     actual_date: date = None,
@@ -42,6 +44,9 @@ async def partial_update_expense(
 
     if expense_type is not None:
         expense.expense_type = expense_type
+
+    if periodicity is not None:
+        expense.periodicity = periodicity
 
     if description is not None:
         expense.description = description

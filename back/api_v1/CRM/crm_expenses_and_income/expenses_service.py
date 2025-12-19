@@ -24,6 +24,7 @@ async def create_expense_service(
     new_expense = await create_expense(
         session=session,
         expense_type=new_expense.expense_type,
+        periodicity=new_expense.periodicity,
         description=new_expense.description,
         amount=new_expense.amount,
         actual_date=new_expense.actual_date,

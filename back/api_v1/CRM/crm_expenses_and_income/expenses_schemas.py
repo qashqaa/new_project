@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, NonNegativeFloat, field_validator, NonNeg
 
 class NewExpenseSchema(BaseModel):
     expense_type: str
+    periodicity: str
     description: Optional[str] = Field(None)
     amount: NonNegativeFloat | NonNegativeInt
     actual_date: Optional[date] = Field(None)
@@ -21,6 +22,7 @@ class NewExpenseSchema(BaseModel):
 class ExpenseSchema(BaseModel):
     id: int
     expense_type: str
+    periodicity: str
     description: Optional[str] = Field(None)
     amount: int
     actual_date: date
@@ -47,6 +49,7 @@ class ExpensesFilterSchema(BaseModel):
 
 class ExpenseUpdateSchema(BaseModel):
     expense_type: Optional[str] = Field(None)
+    periodicity: Optional[str] = Field(None)
     description: Optional[str] = Field(None)
     amount: Optional[int] = Field(None)
     actual_date: Optional[date] = Field(None)
