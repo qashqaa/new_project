@@ -1,1 +1,3 @@
-print("hello world")
+from datetime import date
+
+print(date.today())
