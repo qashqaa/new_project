@@ -42,7 +42,13 @@ class ExpensesFilterSchema(BaseModel):
     skip: Optional[int] = Field(0, ge=0, description="Пропустить записей")
     limit: Optional[int] = Field(12, ge=1, le=1000, description="Лимит на страницу")
 
+    actual_date_from: Optional[date] = Field(None, description="Дата создания от")
+    actual_date_to: Optional[date] = Field(None, description="Дата создания до")
+
     expense_type: Optional[str] = Field(None, description="Фильтр по типу расхода")
+    periodicity: Optional[str] = Field(
+        None, description="Фильтр по периодичности расхода"
+    )
 
     sort_order: Optional[str] = Field("asc", description="Порядок сортировки")
 

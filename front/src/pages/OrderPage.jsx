@@ -118,7 +118,7 @@ const OrderPage = () => {
       <Row justify="space-between" align="middle" className="mb-6">
         <Col>
           <Title level={2} className="mb-0">
-            Заказы
+            📦 Заказы
           </Title>
         </Col>
         <Col>

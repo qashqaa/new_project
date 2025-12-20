@@ -38,8 +38,17 @@ async def get_all_expenses_service(
 ) -> tuple[list[ExpenseSchema], int]:
     stmt = select(ExpenseModel)
 
+    if expense_filter.created_date_from:
+        stmt = stmt.where(ExpenseModel.actual_date >= expense_filter.actual_date_from)
+
+    if expense_filter.created_date_to:
+        stmt = stmt.where(ExpenseModel.actual_date <= expense_filter.actual_date_to)
+
     if expense_filter.expense_type is not None:
         stmt = stmt.where(ExpenseModel.expense_type == expense_filter.expense_type)
+
+    if expense_filter.periodicity is not None:
+        stmt = stmt.where(ExpenseModel.periodicity == expense_filter.periodicity)
 
     if expense_filter.sort_order == "desc":
         stmt = stmt.order_by(ExpenseModel.actual_date.desc())

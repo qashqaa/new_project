@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar'
 import OrderPage from "./pages/OrderPage";
 import ProductPage from "./pages/ProductPage.jsx";
 import MaterialPage from "./pages/MaterialPage.jsx";
+import ExpensesPage from "./pages/ExpensesPage";
 
 function App() {
     return (
@@ -18,6 +19,7 @@ function App() {
                         <Route path="/orders" element={<OrderPage />} />
                         <Route path="/products" element={<ProductPage />} />
                         <Route path="/materials" element={<MaterialPage />} />
+                        <Route path="/expenses" element={<ExpensesPage />} />
                     </Routes>
                 </main>
             </div>

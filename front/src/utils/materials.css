@@ -1,0 +1,30 @@
+.material-page {
+    padding: 24px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .orders-page {
+        padding: 12px;
+    }
+
+    .ant-table {
+        font-size: 12px;
+    }
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.material-page > * {
+    animation: fadeIn 0.3s ease-out;
+}

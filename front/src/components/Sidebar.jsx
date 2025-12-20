@@ -17,6 +17,10 @@ const Sidebar = () => {
       path: '/materials',
       name: '📋 Материалы',
     },
+    {
+      path: '/expenses',
+      name: '💸 Расходы',
+    },
   ];
 
   const isActive = (path) => {

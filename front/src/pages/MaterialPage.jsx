@@ -5,6 +5,7 @@ import MaterialCard from '../components/materials/MaterialCard.jsx';
 import MaterialPagination from '../components/materials/MaterialPagination.jsx';
 import CreateMaterialModal from '../components/materials/CreateMaterialModal.jsx';
 import EditMaterialModal from '../components/materials/EditMaterialModal.jsx';
+import '../utils/materials.css'
 
 const MaterialPage = () => {
   const [materials, setMaterials] = useState([]);
@@ -187,7 +188,7 @@ const MaterialPage = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="material-page">
       {/* Фильтры и кнопки */}
       <MaterialFilters
         filters={filters}

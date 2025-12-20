@@ -153,6 +153,18 @@ export const ordersApi = {
     apiClient.delete(`/crm/${orderId}/costs/${orderCostId}`),
 };
 
+// Expenses API
+export const expensesApi = {
+  // Получить список расходов с пагинацией
+  getExpenses: (params = {}) => apiClient.get('/crm/expenses/', { params }),
+  // Удалить расход
+  deleteExpenses: (expenseId) => apiClient.delete(`/crm/expenses/${expenseId}`),
+  // Создать расход
+  createExpense: (data) => apiClient.post('/crm/expenses/', data),
+  // Изменить расход
+  updateExpense: (expenseId, data) => apiClient.patch(`/crm/expenses/${expenseId}`, data),
+};
+
 // Backup API
 export const backupApi = {
   sendMsg: () => apiClient.get('/backup/'),
@@ -219,6 +231,22 @@ export const schemas = {
     cost: 0, // integer | number, required
     description: '', // string, required
   },
+
+  CreateExpense: {
+    expense_type: '',
+    periodicity: '',
+    description: '',
+    amount: 0,
+    actual_date: '',
+  },
+
+  UpdateExpense: {
+    expense_type: '',
+    periodicity: '',
+    description: '',
+    amount: 0,
+    actual_date: '',
+  },
 };
 
 // Интерцепторы для обработки ошибок
@@ -235,6 +263,7 @@ export default {
   products: productsApi,
   productRels: productRelsAPI,
   orders: ordersApi,
+  expenses: expensesApi,
   backup: backupApi,
   dev: devApi,
   schemas,

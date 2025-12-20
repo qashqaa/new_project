@@ -9,6 +9,7 @@ import PricesModal from '../components/products/PricesModal';
 import ProductPagination from '../components/products/ProductPagination'; // ← новый импорт
 import CreateProductForm from '../components/products/CreateProductForm';
 import { productsApi, materialsApi } from '../api/client';
+import '../utils/products.css'
 
 const { Title } = Typography;
 
@@ -140,13 +141,13 @@ const ProductPage = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="products-page">
       {/* Заголовок */}
       <div className="mb-8">
         <Row justify="space-between" align="middle">
           <Col>
             <Title level={2} className="mb-0">
-              Продукты
+              🛍️ Продукты
             </Title>
           </Col>
           <Col>
@@ -212,7 +213,6 @@ const ProductPage = () => {
           </div>
         ) : (
           <>
-
             {/* Сетка карточек */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
               {products.map((product) => (
