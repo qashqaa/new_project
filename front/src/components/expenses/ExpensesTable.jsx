@@ -1,6 +1,6 @@
-import React, {useState} from 'react';
-import { Button, Popconfirm, Table, Tag, Tooltip, Space } from 'antd'
-import {formatCurrency, getPeriodicityColor} from '../../utils/utilsExpenses'
+import React from 'react';
+import { Button, Popconfirm, Table, Tag, Tooltip, Space } from 'antd';
+import { formatCurrency, getPeriodicityColor } from '../../utils/utilsExpenses';
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 
 const ExpensesTable = ({
@@ -10,12 +10,14 @@ const ExpensesTable = ({
   pagination,
   onTableChange,
   onDelete,
+  onEdit, // Получаем функцию редактирования
 }) => {
   const columns = [
     {
       title: 'ID',
       dataIndex: 'id',
       key: 'id',
+      sorter: true,
       render: (id) => <span className="font-mono">{id}</span>,
     },
 
@@ -60,27 +62,52 @@ const ExpensesTable = ({
       title: 'Дата',
       dataIndex: 'actual_date',
       key: 'actual_date',
-      render: (actual_date) => actual_date || '0000-00-00',
+      sorter: true,
+      render: (actual_date) => {
+        if (!actual_date) return '—';
+        try {
+          const date = new Date(actual_date);
+          return date.toLocaleDateString('ru-RU');
+        } catch {
+          return actual_date;
+        }
+      },
+    },
+
+    {
+      title: 'Дата создания',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      render: (created_at) => {
+        if (!created_at) return '—';
+        try {
+          const date = new Date(created_at);
+          return date.toLocaleDateString('ru-RU');
+        } catch {
+          return created_at;
+        }
+      },
     },
 
     {
       title: 'Действия',
       key: 'actions',
-      width: 200,
+      width: 120,
       fixed: 'right',
       render: (_, record) => {
         return (
           <Space>
             <Tooltip title="Редактировать">
-              <Button type="text"
-                      icon={<EditOutlined />}
-                      onClick={() => onTableChange(record)}
+              <Button
+                type="text"
+                icon={<EditOutlined />}
+                onClick={() => onEdit(record)} // Вызываем функцию из пропсов
               />
             </Tooltip>
-            <Tooltip title="Удалить заказ">
+            <Tooltip title="Удалить расход">
               <Popconfirm
-                title="Удалить заказ?"
-                description="Вы уверены, что хотите удалить этот заказ?"
+                title="Удалить расход?"
+                description="Вы уверены, что хотите удалить этот расход?"
                 onConfirm={() => onDelete(record.id)}
                 okText="Да"
                 cancelText="Нет"
@@ -93,17 +120,23 @@ const ExpensesTable = ({
       },
     },
   ];
+
   return (
-    <>
-      <Table
-        columns={columns}
-        dataSource={expenses}
-        loading={loading}
-        pagination={pagination}
-        onChange={onTableChange}
-        scroll={{ x: 1300 }} // Увеличил ширину для нового столбца
-        />
-    </>
+    <Table
+      columns={columns}
+      dataSource={expenses}
+      rowKey="id"
+      loading={loading}
+      pagination={{
+        ...pagination,
+        total: total,
+        showSizeChanger: true,
+        showQuickJumper: true,
+        showTotal: (total) => `Всего ${total} записей`,
+      }}
+      onChange={onTableChange}
+      scroll={{ x: 1300 }}
+    />
   );
 };
 

@@ -1,15 +1,17 @@
 import { expensesApi } from '../api/client';
 import React, { useState, useEffect } from 'react';
 import { Button, Col, message, Row, Space, Typography } from 'antd';
-import ExpensesTable from '../components/exneses/ExpensesTable.jsx';
-import ExpensesFilters from '../components/exneses/ExpensesFilters.jsx';
-import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
-import '../utils/expenses.css'
+import ExpensesTable from '../components/expenses/ExpensesTable.jsx';
+import ExpensesFilters from '../components/expenses/ExpensesFilters.jsx';
+import ExpensesCreateModal from '../components/expenses/ExpensesCreateModal.jsx';
+import ExpensesEditModal from '../components/expenses/ExpenseEditModal.jsx';
+import { ReloadOutlined, PlusOutlined } from '@ant-design/icons';
+import '../utils/expenses.css';
 
 const { Title } = Typography;
 
 const ExpensesPage = () => {
-  const [expenses, setExpenses]= useState([]);
+  const [expenses, setExpenses] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
@@ -19,43 +21,84 @@ const ExpensesPage = () => {
     sort_order_by: 'desc',
   });
 
+  // Состояния для модалок
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingExpense, setEditingExpense] = useState(null);
+
+  // Загрузка расходов
   const fetchExpenses = async () => {
     setLoading(true);
     try {
       const response = await expensesApi.getExpenses(filters);
-      const expensesWithKey = response.data.items.map(expense => ({
+      const expensesWithKey = response.data.items.map((expense) => ({
         ...expense,
         key: expense.id,
       }));
       setExpenses(expensesWithKey);
       setTotal(response.data.total);
     } catch (error) {
-      message.error('ошибка загрузки расходов');
-      console.log(error)
+      message.error('Ошибка загрузки расходов');
+      console.log(error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   };
 
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  // Обработчики для создания
+  const handleOpenCreateModal = () => {
+    setShowCreateModal(true);
+  };
 
-  useEffect(() => {
-    fetchExpenses();
-  }, [filters]);
+  const handleCloseCreateModal = () => {
+    setShowCreateModal(false);
+  };
 
+  const handleExpenseCreated = (newExpense) => {
+    setExpenses((prev) => [newExpense, ...prev]);
+    setTotal((prev) => prev + 1);
+    message.success('Расход успешно создан');
+    handleCloseCreateModal();
+  };
 
+  // Обработчики для редактирования
+  const handleEditClick = (expense) => {
+    setEditingExpense(expense);
+    setShowEditModal(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setEditingExpense(null);
+  };
+
+  const handleExpenseUpdated = (updatedExpense) => {
+    // Обновляем расход в локальном массиве
+    setExpenses((prev) =>
+      prev.map((expense) =>
+        expense.id === updatedExpense.id ? updatedExpense : expense
+      )
+    );
+    message.success('Расход успешно обновлен');
+    handleCloseEditModal();
+  };
+
+  // Обработчик удаления
   const handleDeleteOrder = async (expenseId) => {
     try {
       await expensesApi.deleteExpenses(expenseId);
+      // Удаляем из локального массива
+      setExpenses((prev) => prev.filter((expense) => expense.id !== expenseId));
+      setTotal((prev) => prev - 1);
       message.success('Расход удалён');
-      fetchExpenses();
     } catch (error) {
-      message.error('ошибка при удалении расхода')
+      message.error('Ошибка при удалении расхода');
     }
   };
 
+  // Обработчик изменения таблицы (пагинация, сортировка)
   const handleTableChange = (pagination, _, sorter) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       skip: (pagination.current - 1) * (pagination.pageSize || 12),
       limit: pagination.pageSize || 12,
@@ -64,22 +107,21 @@ const ExpensesPage = () => {
     }));
   };
 
+  // Обработчик фильтров
   const handleFilterChange = (newFilters) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       ...newFilters,
       skip: 0,
-    }))
+    }));
   };
 
-  const handleCreateSuccess = () => {
-    setIsCreateModalOpen(false);
-    fetchOrders();
-    message.success('Расход успешно добавлен');
-  };
+  useEffect(() => {
+    fetchExpenses();
+  }, [filters]);
 
   return (
-    <div className='expenses-page'>
+    <div className="expenses-page">
       <Row justify="space-between" align="middle" className="mb-6">
         <Col>
           <Title level={2} className="mb-0">
@@ -89,6 +131,7 @@ const ExpensesPage = () => {
         <Col>
           <Space>
             <Button
+              type="primary"
               icon={<ReloadOutlined />}
               onClick={fetchExpenses}
               loading={loading}
@@ -98,13 +141,15 @@ const ExpensesPage = () => {
             <Button
               type="primary"
               icon={<PlusOutlined />}
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={handleOpenCreateModal}
+              loading={loading}
             >
-              Добавить расход
+              Создать расход
             </Button>
           </Space>
         </Col>
       </Row>
+
       <ExpensesFilters filters={filters} onFilterChange={handleFilterChange} />
 
       <ExpensesTable
@@ -121,9 +166,25 @@ const ExpensesPage = () => {
         }}
         onTableChange={handleTableChange}
         onDelete={handleDeleteOrder}
+        onEdit={handleEditClick} // Передаем функцию редактирования
+      />
+
+      {/* Модалка создания */}
+      <ExpensesCreateModal
+        isOpen={showCreateModal}
+        onClose={handleCloseCreateModal}
+        onExpendCreated={handleExpenseCreated}
+      />
+
+      {/* Модалка редактирования */}
+      <ExpensesEditModal
+        isOpen={showEditModal}
+        onClose={handleCloseEditModal}
+        expense={editingExpense}
+        onExpenseUpdated={handleExpenseUpdated}
       />
     </div>
   );
-}
+};
 
 export default ExpensesPage;
