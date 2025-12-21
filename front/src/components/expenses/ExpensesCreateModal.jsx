@@ -139,6 +139,8 @@ const ExpensesCreateModal = ({ isOpen, onClose, onExpendCreated }) => {
               <option value="Расходники">Расходники</option>
               <option value="Маркетинг">Маркетинг</option>
               <option value="Аренда">Аренда</option>
+              <option value="Телефоны">Телефоны</option>
+              <option value="Еда/Продукты">Еда/Продукты</option>
               <option value="Зарплата">Зарплата</option>
               <option value="Прочие расходы">Прочие расходы</option>
             </select>
