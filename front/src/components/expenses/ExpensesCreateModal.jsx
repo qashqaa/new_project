@@ -135,13 +135,12 @@ const ExpensesCreateModal = ({ isOpen, onClose, onExpendCreated }) => {
               className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">Выберите тип расхода</option>
-              <option value="еда">еда</option>
-              <option value="такси">такси</option>
-              <option value="электричество">электричество</option>
-              <option value="аренда">аренда</option>
-              <option value="расходники">расходники</option>
-              <option value="ремонт">ремонт</option>
-              <option value="другое">другое</option>
+              <option value="">Выберите тип расхода</option>
+              <option value="Расходники">Расходники</option>
+              <option value="Маркетинг">Маркетинг</option>
+              <option value="Аренда">Аренда</option>
+              <option value="Зарплата">Зарплата</option>
+              <option value="Прочие расходы">Прочие расходы</option>
             </select>
           </div>
 

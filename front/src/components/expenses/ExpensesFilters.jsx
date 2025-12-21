@@ -80,13 +80,11 @@ const ExpensesFilters = ({ filters, onFilterChange }) => {
               size="middle"
               style={{ width: '100%' }}
             >
-              <Option value="еда">еда</Option>
-              <Option value="такси">такси</Option>
-              <Option value="электричество">электричество</Option>
-              <Option value="аренда">аренда</Option>
-              <Option value="расходники">расходники</Option>
-              <Option value="ремонт">ремонт</Option>
-              <Option value="другое">другое</Option>
+              <Option value="Расходники">Расходники</Option>
+              <Option value="Маркетинг">Маркетинг</Option>
+              <Option value="Аренда">Аренда</Option>
+              <Option value="Зарплата">Зарплата</Option>
+              <Option value="Прочие расходы">Прочие расходы</Option>
             </Select>
           </Form.Item>
         </Col>

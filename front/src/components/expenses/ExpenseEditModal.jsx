@@ -111,13 +111,11 @@ const ExpensesEditModal = ({ isOpen, onClose, expense, onExpenseUpdated }) => {
               size="middle"
             >
               <Option value="">Выберите тип расхода</Option>
-              <Option value="еда">еда</Option>
-              <Option value="такси">такси</Option>
-              <Option value="электричество">электричество</Option>
-              <Option value="аренда">аренда</Option>
-              <Option value="расходники">расходники</Option>
-              <Option value="ремонт">ремонт</Option>
-              <Option value="другое">другое</Option>
+              <Option value="Расходники">Расходники</Option>
+              <Option value="Маркетинг">Маркетинг</Option>
+              <Option value="Аренда">Аренда</Option>
+              <Option value="Зарплата">Зарплата</Option>
+              <Option value="Прочие расходы">Прочие расходы</Option>
             </Select>
           </div>
 
@@ -194,7 +192,8 @@ const ExpensesEditModal = ({ isOpen, onClose, expense, onExpenseUpdated }) => {
             </p>
             {expense.created_at && (
               <p className="text-sm text-blue-700 mt-1">
-                <span className="font-medium">Создан:</span> {new Date(expense.created_at).toLocaleDateString('ru-RU')}
+                <span className="font-medium">Создан:</span>{' '}
+                {new Date(expense.created_at).toLocaleDateString('ru-RU')}
               </p>
             )}
           </div>
