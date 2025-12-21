@@ -134,8 +134,6 @@ const ExpensesCreateModal = ({ isOpen, onClose, onExpendCreated }) => {
               required
               className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">Выберите тип расхода</option>
-              <option value="">Выберите тип расхода</option>
               <option value="Расходники">Расходники</option>
               <option value="Маркетинг">Маркетинг</option>
               <option value="Аренда">Аренда</option>
@@ -157,7 +155,6 @@ const ExpensesCreateModal = ({ isOpen, onClose, onExpendCreated }) => {
               required
               className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">Выберите периодичность</option>
               <option value="ежедневные">ежедневные</option>
               <option value="еженедельные">еженедельные</option>
               <option value="ежемесячные">ежемесячные</option>

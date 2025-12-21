@@ -14,6 +14,17 @@ const ExpensesEditModal = ({ isOpen, onClose, expense, onExpenseUpdated }) => {
   });
   const [loading, setLoading] = useState(false);
 
+  const formatter = (value) => {
+    if (!value && value !== 0) return '';
+    return `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  };
+
+  // Парсинг числа из форматированной строки
+  const parser = (value) => {
+    if (!value) return '';
+    return value.replace(/\s/g, '');
+  };
+
   // Заполняем форму данными расхода при открытии
   useEffect(() => {
     if (expense && isOpen) {
@@ -110,7 +121,6 @@ const ExpensesEditModal = ({ isOpen, onClose, expense, onExpenseUpdated }) => {
               style={{ width: '100%' }}
               size="middle"
             >
-              <Option value="">Выберите тип расхода</Option>
               <Option value="Расходники">Расходники</Option>
               <Option value="Маркетинг">Маркетинг</Option>
               <Option value="Аренда">Аренда</Option>
@@ -132,7 +142,6 @@ const ExpensesEditModal = ({ isOpen, onClose, expense, onExpenseUpdated }) => {
               style={{ width: '100%' }}
               size="middle"
             >
-              <Option value="">Выберите периодичность</Option>
               <Option value="ежедневные">ежедневные</Option>
               <Option value="еженедельные">еженедельные</Option>
               <Option value="ежемесячные">ежемесячные</Option>
@@ -157,7 +166,7 @@ const ExpensesEditModal = ({ isOpen, onClose, expense, onExpenseUpdated }) => {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Сумма *
@@ -168,7 +177,10 @@ const ExpensesEditModal = ({ isOpen, onClose, expense, onExpenseUpdated }) => {
                 onChange={handleAmountChange}
                 placeholder="Сумма"
                 min={0}
+                step={10000}
                 style={{ width: '100%' }}
+                formatter={formatter}
+                parser={parser}
                 required
               />
             </div>

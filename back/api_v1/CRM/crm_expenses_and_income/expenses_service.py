@@ -44,10 +44,10 @@ async def get_all_expenses_service(
     if expense_filter.actual_date_to:
         stmt = stmt.where(ExpenseModel.actual_date <= expense_filter.actual_date_to)
 
-    if expense_filter.expense_type is not None:
+    if expense_filter.expense_type is not None and expense_filter.expense_type:
         stmt = stmt.where(ExpenseModel.expense_type == expense_filter.expense_type)
 
-    if expense_filter.periodicity is not None:
+    if expense_filter.periodicity is not None and expense_filter.periodicity:
         stmt = stmt.where(ExpenseModel.periodicity == expense_filter.periodicity)
 
     if expense_filter.sort_order == "desc":
