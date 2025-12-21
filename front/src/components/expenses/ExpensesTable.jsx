@@ -22,6 +22,13 @@ const ExpensesTable = ({
     },
 
     {
+      title: 'Наименование',
+      dataIndex: 'description',
+      key: 'description',
+      render: (description) => description || '—',
+    },
+
+    {
       title: 'Тип расхода',
       dataIndex: 'expense_type',
       key: 'expense_type',
@@ -52,13 +59,6 @@ const ExpensesTable = ({
     },
 
     {
-      title: 'Описание',
-      dataIndex: 'description',
-      key: 'description',
-      render: (description) => description || '—',
-    },
-
-    {
       title: 'Дата',
       dataIndex: 'actual_date',
       key: 'actual_date',
@@ -70,21 +70,6 @@ const ExpensesTable = ({
           return date.toLocaleDateString('ru-RU');
         } catch {
           return actual_date;
-        }
-      },
-    },
-
-    {
-      title: 'Дата создания',
-      dataIndex: 'created_at',
-      key: 'created_at',
-      render: (created_at) => {
-        if (!created_at) return '—';
-        try {
-          const date = new Date(created_at);
-          return date.toLocaleDateString('ru-RU');
-        } catch {
-          return created_at;
         }
       },
     },
