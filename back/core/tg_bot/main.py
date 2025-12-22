@@ -1,4 +1,8 @@
-from aiogram import Bot
 import os
+from aiogram import Bot
 
-tg_bot = Bot(token=os.getenv("BOT_TOKEN"))
+bot_token = os.getenv("BOT_TOKEN")
+
+tg_bot = None
+if bot_token != "TOKEN":
+    tg_bot = Bot(token=bot_token)

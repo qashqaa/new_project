@@ -1,10 +1,10 @@
 version: '3.8'
 
 services:
-  # PostgreSQL 15
+
   postgres:
     image: postgres:15-alpine
-    container_name: panda_db
+    container_name: postgres
     env_file:
       - .env
     restart: unless-stopped
@@ -23,13 +23,21 @@ services:
 
       # 3 Бэкапы
       - ./pg_data/backups:/backups
+    
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
       - app-network
 
 
-  # Бэкенд
   back:
     build: ./back
+    container_name: back
     env_file:
       - .env
     ports:
@@ -39,12 +47,26 @@ services:
       - ./pg_data/backups:/backups
     environment:
       DATABASE_URL: ${DATABASE_URL}
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+    
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
     networks:
       - app-network
 
-  # Фронтенд
+  # Фронтенд (ТРЕТИЙ, ждет бэкенд)
   front:
     build: ./front
+    container_name: front
     env_file:
       - .env
     ports:
@@ -52,13 +74,22 @@ services:
     volumes:
       - ./front:/app
       - /app/node_modules
+    
+
     depends_on:
-      - back
+      back:
+        condition: service_healthy
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    
     networks:
       - app-network
 
-volumes:
-  postgres_data:
 
 networks:
   app-network:
