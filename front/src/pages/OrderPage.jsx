@@ -9,6 +9,7 @@ import {
   message,
   Spin,
   Empty,
+  Modal,
 } from 'antd';
 import {
   PlusOutlined,
@@ -113,6 +114,25 @@ const OrderPage = () => {
     }));
   };
 
+  const handleRevertOrder = async (orderId) => {
+    Modal.confirm({
+      title: 'Вернуть заказ в статус "Создан"?',
+      content: 'Заказ будет возвращен в начальное состояние. Все данные сохранятся.',
+      okText: 'Да, вернуть',
+      cancelText: 'Отмена',
+      onOk: async () => {
+        try {
+          await ordersApi.revertOrder(orderId);
+          message.success('Заказ возвращен в статус "Создан"');
+          fetchOrders(); // Обновить список заказов
+        } catch (error) {
+          message.error('Ошибка при возврате заказа');
+          console.error(error);
+        }
+      },
+    });
+  };
+
   return (
     <div className="orders-page">
       <Row justify="space-between" align="middle" className="mb-6">
@@ -177,6 +197,7 @@ const OrderPage = () => {
             onComplete={handleCompleteOrder}
             onAppendPayment={handleAppendPayment}
             onViewDetails={(order) => setSelectedOrder(order)}
+            onRevertOrder={handleRevertOrder}
           />
         )}
       </Card>

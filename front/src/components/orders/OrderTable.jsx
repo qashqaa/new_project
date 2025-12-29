@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Table, Tag, Space, Button, Tooltip, Popconfirm, InputNumber, Modal } from 'antd';
+import { Table, Tag, Space, Button, Tooltip, Popconfirm, InputNumber, Modal, message } from 'antd';
 import {
   EyeOutlined,
   EditOutlined,
   DeleteOutlined,
   CheckCircleOutlined,
   DollarOutlined,
+  UndoOutlined,
+  HistoryOutlined,
 } from '@ant-design/icons';
 import { formatCurrency, formatDate, getStatusLabel, getStatusColor } from '../../utils/utilsOrder.js';
 import { ORDER_STATUS } from '../../utils/orderConstants.js';
@@ -20,6 +22,7 @@ const OrderTable = ({
                       onComplete,
                       onAppendPayment,
                       onViewDetails,
+                      onRevertOrder, // Новая функция для возврата заказа
                     }) => {
 
   const [paymentModal, setPaymentModal] = useState({ visible: false, orderId: null, amount: 0 });
@@ -129,13 +132,16 @@ const OrderTable = ({
     {
       title: 'Действия',
       key: 'actions',
-      width: 200,
+      width: 220, // Увеличил ширину для новой кнопки
       fixed: 'right',
       render: (_, record) => {
         const totalPrice = record.total_price || 0;
         const paidAmount = record.paid || 0;
         const remainder = totalPrice - paidAmount;
         const isFullyPaid = remainder <= 0;
+        const isCompleted = record.status === ORDER_STATUS.COMPLETED;
+        const isCanceled = record.status === ORDER_STATUS.CANCELED;
+        const canBeReverted = isCompleted || isCanceled; // Можно вернуть только завершенные или отмененные
 
         return (
           <Space>
@@ -147,7 +153,7 @@ const OrderTable = ({
               />
             </Tooltip>
 
-            {record.status !== ORDER_STATUS.COMPLETED && record.status !== ORDER_STATUS.CANCELED && (
+            {!isCompleted && !isCanceled && (
               <>
                 <Tooltip title={isFullyPaid ? "Заказ полностью оплачен" : "Добавить оплату"}>
                   <Button
@@ -171,6 +177,25 @@ const OrderTable = ({
                   </Popconfirm>
                 </Tooltip>
               </>
+            )}
+
+            {/* Новая кнопка: Вернуть в статус "Создан" */}
+            {canBeReverted && (
+              <Tooltip title="Вернуть в статус 'Создан'">
+                <Popconfirm
+                  title="Вернуть заказ в статус 'Создан'?"
+                  description={`Это вернет заказ "${record.customer || 'без названия'}" в статус "Создан". Продолжить?`}
+                  onConfirm={() => onRevertOrder(record.id)}
+                  okText="Да, вернуть"
+                  cancelText="Отмена"
+                >
+                  <Button
+                    type="text"
+                    icon={<UndoOutlined />}
+                    style={{ color: '#1890ff' }}
+                  />
+                </Popconfirm>
+              </Tooltip>
             )}
 
             <Tooltip title="Удалить заказ">
@@ -202,7 +227,7 @@ const OrderTable = ({
         loading={loading}
         pagination={pagination}
         onChange={onTableChange}
-        scroll={{ x: 1300 }} // Увеличил ширину для нового столбца
+        scroll={{ x: 1400 }}
         rowClassName={(record) => {
           const totalPrice = record.total_price || 0;
           const paidAmount = record.paid || 0;
@@ -210,7 +235,7 @@ const OrderTable = ({
 
           if (record.status === ORDER_STATUS.COMPLETED) return 'bg-green-50';
           if (record.status === ORDER_STATUS.CANCELED) return 'bg-red-50';
-          if (remainder <= 0) return 'bg-blue-50'; // Полностью оплаченные заказы
+          if (remainder <= 0) return 'bg-blue-50';
           return '';
         }}
         locale={{

@@ -35,13 +35,14 @@ const MaterialFilters = ({
           value={filters.material_type}
           onChange={(e) => onFiltersChange({ material_type: e.target.value })}
         >
-          <option value="">Все типы</option>
-          <option value="бумага">бумага</option>
-          <option value="дизайнерская бумага">дизайнерская бумага</option>
-          <option value="ленты">ленты</option>
-          <option value="биркодержатели">биркодержатели</option>
-          <option value="риббон">риббон</option>
-          <option value="структурная бумага">структурная бумага</option>
+          <option value="">Выберите тип</option>
+          <option value="биркодержатели">Биркодержатели</option>
+          <option value="бумага">Бумага</option>
+          <option value="дизайнерская бумага">Дизайнерская бумага</option>
+          <option value="ленты">Ленты</option>
+          <option value="риббон">Риббон</option>
+          <option value="структурная бумага">Структурная бумага</option>
+          <option value="другое">Другое</option>
         </select>
 
         <button

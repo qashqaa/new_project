@@ -215,3 +215,25 @@ async def partial_order_update_service(
 
     await session.commit()
     return {"Message": f"order:{order_id} updated!"}
+
+
+async def order_revert_to_created_status_service(session: AsyncSession, order_id: str):
+    order: Order = await get_order(session=session, order_id=order_id)
+
+    if order is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"order with id:{order_id} not found",
+        )
+
+    if order.status != 5:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    order.status = OrderStatus.CREATED.value
+    order.paid = 0
+    order.materials_price = 0
+
+    await session.commit()
+    return {"Message": f"Order status changed:{order.status}"}

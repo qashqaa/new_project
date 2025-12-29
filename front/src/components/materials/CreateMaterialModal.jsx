@@ -97,10 +97,10 @@ const CreateMaterialModal = ({ isOpen, onClose, onMaterialCreated }) => {
                             className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
                             <option value="">Выберите тип</option>
+                            <option value="биркодержатели">Биркодержатели</option>
                             <option value="бумага">Бумага</option>
                             <option value="дизайнерская бумага">Дизайнерская бумага</option>
                             <option value="ленты">Ленты</option>
-                            <option value="биркодержатели">Биркодержатели</option>
                             <option value="риббон">Риббон</option>
                             <option value="структурная бумага">Структурная бумага</option>
                             <option value="другое">Другое</option>

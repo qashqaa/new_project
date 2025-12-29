@@ -114,6 +114,9 @@ export const ordersApi = {
   completeOrder: (orderId) =>
     apiClient.patch(`/crm/orders/order_complete/${orderId}`),
 
+  revertOrder: (orderId) =>
+    apiClient.patch(`/crm/orders/order_status_revert_to_created/${orderId}`),
+
   // === УПРАВЛЕНИЕ ТОВАРАМИ В ЗАКАЗЕ ===
 
   // Добавить продукт в заказ

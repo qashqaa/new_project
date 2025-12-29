@@ -13,7 +13,7 @@ from api_v1.CRM.crm_orders.crm_orders_services import (
     payment_add_service,
     get_order_by_id_service,
     order_complete_service,
-    partial_order_update_service,
+    partial_order_update_service, order_revert_to_created_status_service,
 )
 from core import SessionDepPG
 from core.ResponseModel.response_model import PaginatedResponse
@@ -89,4 +89,10 @@ async def crm_append_payment(
 @router.patch("/order_complete/{order_id}")
 async def crm_order_complete(session: SessionDepPG, order_id: str):
     res = await order_complete_service(session=session, order_id=order_id)
+    return res
+
+
+@router.patch("/order_status_revert_to_created/{order_id}")
+async def crm_order_complete(session: SessionDepPG, order_id: str):
+    res = await order_revert_to_created_status_service(session=session, order_id=order_id)
     return res

@@ -270,10 +270,7 @@ const OrderDetailsModal = ({ order, open, onClose, onUpdate }) => {
         return (
           <Tooltip title={`${budged} × ${product?.quantity || 1} = ${totalBudgeted}`}>
             <div className="font-medium">
-              {totalBudgeted}
-              <div className="text-xs text-gray-500">
-                ({budged} × {product?.quantity || 1})
-              </div>
+              {budged}
             </div>
           </Tooltip>
         );
@@ -512,17 +509,10 @@ const OrderDetailsModal = ({ order, open, onClose, onUpdate }) => {
                             Итого по продукту:
                           </Table.Summary.Cell>
                           <Table.Summary.Cell index={1}>
-                            {totalBudgeted}
                           </Table.Summary.Cell>
                           <Table.Summary.Cell index={2}>
-                            {totalActual}
                           </Table.Summary.Cell>
                           <Table.Summary.Cell index={3}>
-                            <span className={`
-                              ${totalActual > totalBudgeted ? 'text-red-600' : 'text-green-600'}
-                            `}>
-                              {totalActual > totalBudgeted ? '+' : ''}{totalActual - totalBudgeted}
-                            </span>
                           </Table.Summary.Cell>
                           <Table.Summary.Cell index={4} colSpan={2}>
                             {formatCurrency(totalCost)}
