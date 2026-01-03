@@ -16,6 +16,7 @@ from api_v1.CRM.crm_orders.order_cost_view import router as order_cost_router
 from api_v1.CRM.crm_expenses_and_income.expenses_view import (
     router as crm_expense_router,
 )
+from api_v1.CRM.statistics.statistics_view import router as crm_statistics_router
 
 router = APIRouter(
     tags=["CRM"],
@@ -30,3 +31,4 @@ router.include_router(order_product_router)
 router.include_router(order_product_material_router)
 router.include_router(order_cost_router)
 router.include_router(crm_expense_router)
+router.include_router(crm_statistics_router)
