@@ -58,10 +58,14 @@ async def crm_get_month_statistics(
         stmt = (
             select(
                 orders_subq.c.date,
-                orders_subq.c.orders_amount,
-                orders_subq.c.orders_count,
-                expenses_subq.c.expenses_amount,
-                expenses_subq.c.expenses_count,
+                func.coalesce(orders_subq.c.orders_amount, 0).label("orders_amount"),
+                func.coalesce(orders_subq.c.orders_count, 0).label("orders_count"),
+                func.coalesce(expenses_subq.c.expenses_amount, 0).label(
+                    "expenses_amount"
+                ),
+                func.coalesce(expenses_subq.c.expenses_count, 0).label(
+                    "expenses_count"
+                ),
             )
             .outerjoin(expenses_subq, orders_subq.c.date == expenses_subq.c.date)
             .order_by(orders_subq.c.date)
@@ -102,8 +106,8 @@ async def crm_get_month_statistics(
     if filters.statistics_type == "orders":
         stmt = select(
             orders_subq.c.date,
-            orders_subq.c.orders_amount,
-            orders_subq.c.orders_count,
+            func.coalesce(orders_subq.c.orders_amount, 0).label("orders_amount"),
+            func.coalesce(orders_subq.c.orders_count, 0).label("orders_count"),
         ).order_by(orders_subq.c.date)
 
         result: Result = await session.execute(stmt)
@@ -130,8 +134,8 @@ async def crm_get_month_statistics(
     if filters.statistics_type == "expenses":
         stmt = select(
             expenses_subq.c.date,
-            expenses_subq.c.expenses_amount,
-            expenses_subq.c.expenses_count,
+            func.coalesce(expenses_subq.c.expenses_amount, 0).label("expenses_amount"),
+            func.coalesce(expenses_subq.c.expenses_count, 0).label("expenses_count"),
         ).order_by(expenses_subq.c.date)
 
         result: Result = await session.execute(stmt)
