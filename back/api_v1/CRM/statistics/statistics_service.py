@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from sqlalchemy import func, select, Result
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -54,20 +54,6 @@ async def crm_get_month_statistics(
         .subquery()
     )
 
-    orders_total = await session.execute(
-        select(
-            func.sum(orders_subq.c.orders_amount).label("amount"),
-            func.sum(orders_subq.c.orders_count).label("count"),
-        )
-    )
-
-    expenses_total = await session.execute(
-        select(
-            func.sum(expenses_subq.c.expenses_amount).label("amount"),
-            func.sum(expenses_subq.c.expenses_count).label("count"),
-        )
-    )
-
     if filters.statistics_type == "all":
         stmt = (
             select(
@@ -90,6 +76,20 @@ async def crm_get_month_statistics(
             )  # _mapping превращает Row в dict
             for dt in rows
         ]
+
+        orders_total = await session.execute(
+            select(
+                func.sum(orders_subq.c.orders_amount).label("amount"),
+                func.sum(orders_subq.c.orders_count).label("count"),
+            )
+        )
+
+        expenses_total = await session.execute(
+            select(
+                func.sum(expenses_subq.c.expenses_amount).label("amount"),
+                func.sum(expenses_subq.c.expenses_count).label("count"),
+            )
+        )
 
         res_order_total = orders_total.one()
         totals["total_orders_amount"] = res_order_total.amount or 0
@@ -116,6 +116,13 @@ async def crm_get_month_statistics(
             for dt in rows
         ]
 
+        orders_total = await session.execute(
+            select(
+                func.sum(orders_subq.c.orders_amount).label("amount"),
+                func.sum(orders_subq.c.orders_count).label("count"),
+            )
+        )
+
         res_order_total = orders_total.one()
         totals["total_orders_amount"] = res_order_total.amount or 0
         totals["total_orders_count"] = res_order_total.count or 0
@@ -137,6 +144,13 @@ async def crm_get_month_statistics(
             for dt in rows
         ]
 
+        expenses_total = await session.execute(
+            select(
+                func.sum(expenses_subq.c.expenses_amount).label("amount"),
+                func.sum(expenses_subq.c.expenses_count).label("count"),
+            )
+        )
+
         res_expenses_total = expenses_total.one()
         totals["total_expenses_amount"] = res_expenses_total.amount or 0
         totals["total_expenses_count"] = res_expenses_total.count or 0
@@ -144,7 +158,7 @@ async def crm_get_month_statistics(
     return PaginatedMonthStatistics(items=items, **totals)
 
 
-async def crm_get_year_graph(session: AsyncSession, filters: StatisticsFilterSchema):
+async def crm_get_year_graph(session: AsyncSession):
     totals = {
         "total_orders_count": 0,
         "total_expenses_count": 0,
@@ -152,15 +166,78 @@ async def crm_get_year_graph(session: AsyncSession, filters: StatisticsFilterSch
         "total_expenses_amount": 0,
     }
 
+    start = datetime.now()
+    start = start.date().replace(month=start.month + 1)
+
     items = list()
 
-    for month in range(1, 13):
-        items.append(
-            StatisticsSchema(
-                date=filters.date.replace(month=month),
-                orders_count=0,
-                orders_amount=0,
-                expenses_count=0,
-                expenses_amount=0,
+    for j in range(12):
+
+        if start.month == 1:
+            start = start.replace(year=start.year - 1, month=12, day=1)
+        else:
+            start = start.replace(month=start.month - 1, day=1)
+
+        if start.month == 12:
+            next_month = date(start.year + 1, 1, 1)
+        else:
+            next_month = date(start.year, start.month + 1, 1)
+
+        orders_subq = (
+            select(
+                func.date(Order.created_date).label("date"),
+                func.sum(Order.total_price).label("orders_amount"),
+                func.count().label("orders_count"),
+            )
+            .where(Order.created_date >= start, Order.created_date < next_month)
+            .group_by(func.date(Order.created_date))
+            .subquery()
+        )
+
+        expenses_subq = (
+            select(
+                func.date(ExpenseModel.actual_date).label("date"),
+                func.sum(ExpenseModel.amount).label("expenses_amount"),
+                func.count().label("expenses_count"),
+            )
+            .where(
+                ExpenseModel.actual_date >= start,
+                ExpenseModel.actual_date < next_month,
+            )
+            .group_by(func.date(ExpenseModel.actual_date))
+            .subquery()
+        )
+
+        orders_total = await session.execute(
+            select(
+                func.sum(orders_subq.c.orders_amount).label("amount"),
+                func.sum(orders_subq.c.orders_count).label("count"),
             )
         )
+
+        expenses_total = await session.execute(
+            select(
+                func.sum(expenses_subq.c.expenses_amount).label("amount"),
+                func.sum(expenses_subq.c.expenses_count).label("count"),
+            )
+        )
+
+        res_order_total = orders_total.one()
+        res_expenses_total = expenses_total.one()
+
+        totals["total_orders_count"] += res_order_total.count or 0
+        totals["total_expenses_count"] += res_expenses_total.count or 0
+        totals["total_orders_amount"] += res_order_total.amount or 0
+        totals["total_expenses_amount"] += res_expenses_total.amount or 0
+
+        items.append(
+            StatisticsSchema(
+                date=start,
+                orders_count=res_order_total.count or 0,
+                orders_amount=res_order_total.amount or 0,
+                expenses_count=res_expenses_total.count or 0,
+                expenses_amount=res_expenses_total.amount or 0,
+            )
+        )
+
+    return PaginatedMonthStatistics(items=items, **totals)

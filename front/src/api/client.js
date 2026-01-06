@@ -173,6 +173,12 @@ export const backupApi = {
   sendMsg: () => apiClient.get('/backup/'),
 };
 
+// stats API
+export const statsApi ={
+  monthStats: (params = {}) => apiClient.get('/crm/statistics/month', { params }),
+  yearGraph: () => apiClient.get('/crm/statistics/graphs'),
+}
+
 // Dev API (для тестирования)
 export const devApi = {
   start: () => apiClient.get('/'),

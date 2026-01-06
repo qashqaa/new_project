@@ -21,6 +21,10 @@ const Sidebar = () => {
       path: '/expenses',
       name: '💸 Расходы',
     },
+    {
+      path: '/statistics',
+      name: '📊 Статистика',
+    },
   ];
 
   const isActive = (path) => {
@@ -31,7 +35,7 @@ const Sidebar = () => {
     <div className="sticky top-0 h-screen overflow-y-auto">
       {/* Заголовок */}
       <div className="p-6 border-b">
-        <h1 className="text-xl font-bold text-gray-800">Panda Print</h1>
+        <h1 className="text-xl font-bold text-gray-800">🐼 Panda Print</h1>
       </div>
 
       {/* Меню */}
