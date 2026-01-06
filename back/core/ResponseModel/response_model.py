@@ -1,6 +1,6 @@
 from typing import Generic, TypeVar, List
 
-from pydantic import BaseModel, computed_field, Field, field_validator
+from pydantic import BaseModel, computed_field, Field
 
 T = TypeVar("T")
 
@@ -25,22 +25,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
 
 class PaginatedMonthStatistics(BaseModel, Generic[T]):
     items: List[T]
-
     total_orders_count: int = Field(0)
     total_expenses_count: int = Field(0)
     total_orders_amount: int = Field(0)
     total_expenses_amount: int = Field(0)
-
-    @field_validator("total_orders_amount")
-    @classmethod
-    def convert_to_sum_orders(cls, v):
-        if v == 0:
-            return 0
-        return int(v / 100)
-
-    @field_validator("total_expenses_amount")
-    @classmethod
-    def convert_to_sum_expenses(cls, v):
-        if v == 0:
-            return 0
-        return int(v / 100)

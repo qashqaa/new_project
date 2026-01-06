@@ -276,4 +276,5 @@ export default {
   backup: backupApi,
   dev: devApi,
   schemas,
+  statsApi
 };

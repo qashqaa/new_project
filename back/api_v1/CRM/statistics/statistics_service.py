@@ -155,7 +155,13 @@ async def crm_get_month_statistics(
         totals["total_expenses_amount"] = res_expenses_total.amount or 0
         totals["total_expenses_count"] = res_expenses_total.count or 0
 
-    return PaginatedMonthStatistics(items=items, **totals)
+    return PaginatedMonthStatistics(
+        items=items,
+        total_orders_count=totals["total_orders_count"],
+        total_orders_amount=int(totals["total_orders_amount"] / 100),
+        total_expenses_count=totals["total_expenses_count"],
+        total_expenses_amount=int(totals["total_expenses_amount"] / 100),
+    )
 
 
 async def crm_get_year_graph(session: AsyncSession):
@@ -240,4 +246,10 @@ async def crm_get_year_graph(session: AsyncSession):
             )
         )
 
-    return PaginatedMonthStatistics(items=items, **totals)
+    return PaginatedMonthStatistics(
+        items=items,
+        total_orders_count=totals["total_orders_count"],
+        total_orders_amount=int(totals["total_orders_amount"] / 100),
+        total_expenses_count=totals["total_expenses_count"],
+        total_expenses_amount=int(totals["total_expenses_amount"] / 100),
+    )
