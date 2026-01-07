@@ -1,8 +1,9 @@
+from datetime import datetime, UTC
+
+from fastapi import HTTPException, status
 from sqlalchemy import select, func, Result
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from fastapi import HTTPException, status
-from datetime import datetime, UTC
 
 from api_v1.CRM.crm_orders.order_CRUD import (
     create_order,
@@ -18,8 +19,8 @@ from core.models import Order, OrderProductModel, OrderProductMaterial, OrderSta
 
 
 async def create_order_service(
-    session: AsyncSession,
-    new_order: OrderCreateSchema,
+        session: AsyncSession,
+        new_order: OrderCreateSchema,
 ) -> OrderSchema:
     order = await create_order(
         session=session,
@@ -35,7 +36,7 @@ async def create_order_service(
 
 
 async def get_orders_service(
-    session: AsyncSession, filter_data: OrderFilterSchema
+        session: AsyncSession, filter_data: OrderFilterSchema
 ) -> tuple[list[OrderSchema], int]:
     sort_filters = {
         "created_date": Order.created_date,
@@ -105,11 +106,11 @@ async def delete_order_service(session: AsyncSession, order_id: str) -> bool:
     if not order:
         return False
 
-    # if order.status == 5:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_400_BAD_REQUEST,
-    #         detail=f"Can not add payment order with status:{order.status}",
-    #     )
+    if order.status == 5:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Can not add payment order with status:{order.status}",
+        )
 
     await session.delete(order)
     await session.commit()
@@ -117,7 +118,7 @@ async def delete_order_service(session: AsyncSession, order_id: str) -> bool:
 
 
 async def payment_add_service(
-    session: AsyncSession, order_id: str, payment: int | float
+        session: AsyncSession, order_id: str, payment: int | float
 ) -> OrderSchema:
     if payment <= 0:
         raise HTTPException(
@@ -185,14 +186,25 @@ async def order_complete_service(session: AsyncSession, order_id: str):
     order.materials_price = total_material_price
     order.completed_date = datetime.now(UTC).replace(tzinfo=None)
     order.status = OrderStatus.COMPLETED.value
+
+    for prod in order.products_detail:
+        for mat in prod.materials:
+            if mat.material.count_left - mat.actual_usage >= 0:
+                mat.material.count_left -= mat.actual_usage
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"not enough material-{mat.material.name}{mat.material.detail} to order-{order.id}",
+                )
+
     await session.commit()
     return {"Message": f"Order status changed:{order.status}"}
 
 
 async def partial_order_update_service(
-    session: AsyncSession,
-    order_id: str,
-    update_data: OrderPartialUpdateSchema,
+        session: AsyncSession,
+        order_id: str,
+        update_data: OrderPartialUpdateSchema,
 ):
     order: Order = await get_order(session=session, order_id=order_id)
 
@@ -234,6 +246,10 @@ async def order_revert_to_created_status_service(session: AsyncSession, order_id
     order.status = OrderStatus.CREATED.value
     order.paid = 0
     order.materials_price = 0
+
+    for prod in order.products_detail:
+        for mat in prod.materials:
+            mat.material.count_left += mat.actual_usage
 
     await session.commit()
     return {"Message": f"Order status changed:{order.status}"}

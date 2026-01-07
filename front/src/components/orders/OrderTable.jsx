@@ -155,7 +155,11 @@ const OrderTable = ({
 
             {!isCompleted && !isCanceled && (
               <>
-                <Tooltip title={isFullyPaid ? "Заказ полностью оплачен" : "Добавить оплату"}>
+                <Tooltip
+                  title={
+                    isFullyPaid ? 'Заказ полностью оплачен' : 'Добавить оплату'
+                  }
+                >
                   <Button
                     type="text"
                     icon={<DollarOutlined />}
@@ -198,21 +202,19 @@ const OrderTable = ({
               </Tooltip>
             )}
 
-            <Tooltip title="Удалить заказ">
-              <Popconfirm
-                title="Удалить заказ?"
-                description="Вы уверены, что хотите удалить этот заказ?"
-                onConfirm={() => onDelete(record.id)}
-                okText="Да"
-                cancelText="Нет"
-              >
-                <Button
-                  type="text"
-                  danger
-                  icon={<DeleteOutlined />}
-                />
-              </Popconfirm>
-            </Tooltip>
+            {!isCompleted && !isCanceled && (
+              <Tooltip title="Удалить заказ">
+                <Popconfirm
+                  title="Удалить заказ?"
+                  description="Вы уверены, что хотите удалить этот заказ?"
+                  onConfirm={() => onDelete(record.id)}
+                  okText="Да"
+                  cancelText="Нет"
+                >
+                  <Button type="text" danger icon={<DeleteOutlined />} />
+                </Popconfirm>
+              </Tooltip>
+            )}
           </Space>
         );
       },
