@@ -64,7 +64,7 @@ class ProductMaterialSchema(BaseModel):
     id: int
     material_name: str
     material_type: str
-    material_detail: str
+    material_detail: Optional[str] = None
     product_id: str
     material_id: str
     quantity_in_one_mat_unit: int

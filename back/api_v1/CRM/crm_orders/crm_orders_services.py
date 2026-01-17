@@ -19,8 +19,8 @@ from core.models import Order, OrderProductModel, OrderProductMaterial, OrderSta
 
 
 async def create_order_service(
-        session: AsyncSession,
-        new_order: OrderCreateSchema,
+    session: AsyncSession,
+    new_order: OrderCreateSchema,
 ) -> OrderSchema:
     order = await create_order(
         session=session,
@@ -36,7 +36,7 @@ async def create_order_service(
 
 
 async def get_orders_service(
-        session: AsyncSession, filter_data: OrderFilterSchema
+    session: AsyncSession, filter_data: OrderFilterSchema
 ) -> tuple[list[OrderSchema], int]:
     sort_filters = {
         "created_date": Order.created_date,
@@ -118,7 +118,7 @@ async def delete_order_service(session: AsyncSession, order_id: str) -> bool:
 
 
 async def payment_add_service(
-        session: AsyncSession, order_id: str, payment: int | float
+    session: AsyncSession, order_id: str, payment: int | float
 ) -> OrderSchema:
     if payment <= 0:
         raise HTTPException(
@@ -202,9 +202,9 @@ async def order_complete_service(session: AsyncSession, order_id: str):
 
 
 async def partial_order_update_service(
-        session: AsyncSession,
-        order_id: str,
-        update_data: OrderPartialUpdateSchema,
+    session: AsyncSession,
+    order_id: str,
+    update_data: OrderPartialUpdateSchema,
 ):
     order: Order = await get_order(session=session, order_id=order_id)
 

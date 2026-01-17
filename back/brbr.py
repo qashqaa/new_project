@@ -1,11 +1,5 @@
-from datetime import date
+from datetime import datetime
 
-start = date(year=2026, month=2, day=1)
+temp = datetime.now()
 
-for j in range(12):
-
-    if start.month == 1:
-        start = start.replace(year=start.year - 1, month=12)
-    else:
-        start = start.replace(month=start.month - 1)
-    print(start)
+print(temp.strftime("%T"))
