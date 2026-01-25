@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Literal
 
 from pydantic import (
     BaseModel,
@@ -155,6 +155,17 @@ class ProductFilterSchema(BaseModel):
     size: Optional[str] = Field(None, description="Фильтр по размеру")
     detail: Optional[str] = Field(None, description="Фильтр по деталям")
     search: Optional[str] = Field(None, description="Поиск по названию")
+    type: Optional[
+        Literal[
+            "Наклейки",
+            "Визитки",
+            "Бирки",
+            "Ленты",
+            "Карточки/открытки",
+            "Сертификаты/меню",
+            "Биркодержатели",
+        ]
+    ] = Field(None, description="Тип продукта")
 
     # Сортировка
     sort_by: Optional[str] = Field("name", description="Поле для сортировки")

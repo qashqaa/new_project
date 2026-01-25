@@ -64,6 +64,10 @@ async def get_products_service(
         selectinload(Product.price_tier),
     )
 
+    if filters.type:
+        print(filters.type)
+        base_stmt = base_stmt.where(Product.name.ilike(f"%{filters.type}%"))
+
     if filters.name:
         base_stmt = base_stmt.where(Product.name == filters.name)
 

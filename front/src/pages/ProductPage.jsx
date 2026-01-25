@@ -1,15 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { message, Modal, Card, Row, Col, Button, Space, Typography, Spin, Empty } from 'antd';
+import {
+  message,
+  Modal,
+  Card,
+  Row,
+  Col,
+  Button,
+  Space,
+  Typography,
+  Spin,
+  Empty,
+} from 'antd';
 import { ReloadOutlined, PlusOutlined, UpOutlined } from '@ant-design/icons';
 import ProductFilter from '../components/products/ProductFilter';
 import ProductCard from '../components/products/ProductCard';
 import ProductModal from '../components/products/ProductModal';
 import MaterialsModal from '../components/products/MaterialsModal';
 import PricesModal from '../components/products/PricesModal';
-import ProductPagination from '../components/products/ProductPagination'; // ← новый импорт
+import ProductPagination from '../components/products/ProductPagination';
 import CreateProductForm from '../components/products/CreateProductForm';
 import { productsApi, materialsApi } from '../api/client';
-import '../utils/products.css'
+import '../utils/products.css';
 
 const { Title } = Typography;
 
@@ -23,9 +34,13 @@ const ProductPage = () => {
     skip: 0,
     limit: 12,
     search: '',
+    type: null, // ← ДОБАВЛЕНО поле type
     sort_by: 'name',
     sort_order: 'asc',
   });
+
+  // Для немедленного поиска
+  const [searchTrigger, setSearchTrigger] = useState(0);
 
   // Модалки редактирования
   const [activeModal, setActiveModal] = useState(null);
@@ -34,19 +49,39 @@ const ProductPage = () => {
   // Сворачиваемая форма создания
   const [showCreateForm, setShowCreateForm] = useState(false);
 
-  // Загрузка продуктов
+  // Загрузка продуктов (убрана зависимость от filters)
   const loadProducts = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await productsApi.getProducts(filters);
+
+      // Формируем параметры запроса
+      const params = {
+        skip: filters.skip,
+        limit: filters.limit,
+        sort_by: filters.sort_by,
+        sort_order: filters.sort_order,
+      };
+
+      // Добавляем параметры только если они есть
+      if (filters.search && filters.search.trim()) {
+        params.search = filters.search.trim();
+      }
+
+      if (filters.type && filters.type.trim()) {
+        params.type = filters.type.trim(); // ← передаем тип
+      }
+
+
+      const response = await productsApi.getProducts(params);
       setProducts(response.data.items || []);
       setTotal(response.data.total || response.data.count || 0);
     } catch (error) {
+      console.error('Ошибка загрузки продуктов:', error);
       message.error('Ошибка загрузки продуктов');
     } finally {
       setLoading(false);
     }
-  }, [filters]); // ← зависит от filters
+  }, [filters]); // оставляем зависимость от filters
 
   // Загрузка материалов
   const loadMaterials = useCallback(async () => {
@@ -61,18 +96,30 @@ const ProductPage = () => {
   // Загружаем продукты при изменении фильтров
   useEffect(() => {
     loadProducts();
-  }, [filters, loadProducts]);
+  }, [searchTrigger]); // ← срабатывает при изменении searchTrigger
 
   // Загружаем материалы один раз
   useEffect(() => {
     loadMaterials();
   }, [loadMaterials]);
 
-  // Обработчик изменения фильтров (для пагинации)
+  // Обработчик изменения фильтров (ОБНОВЛЕН)
   const handleFiltersChange = useCallback((newFilters) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
-    // loadProducts() вызовется автоматически через useEffect выше
+
+    setFilters((prev) => ({
+      ...prev,
+      ...newFilters,
+      skip: 'skip' in newFilters ? newFilters.skip : 0, // сбрасываем пагинацию при других фильтрах
+    }));
+
+    // Триггерим немедленный поиск
+    setSearchTrigger((prev) => prev + 1);
   }, []);
+
+  // Обработчик обновления (кнопка "Поиск")
+  const handleReload = useCallback(() => {
+    setSearchTrigger((prev) => prev + 1);
+  }, [filters]);
 
   // Открытие модалок редактирования
   const openEditModal = (product) => {
@@ -136,7 +183,7 @@ const ProductPage = () => {
 
   // После успешного создания
   const handleCreateSuccess = () => {
-    loadProducts();
+    setSearchTrigger((prev) => prev + 1); // обновляем список
     setShowCreateForm(false);
   };
 
@@ -182,7 +229,7 @@ const ProductPage = () => {
           <ProductFilter
             filters={filters}
             onFiltersChange={handleFiltersChange}
-            onReload={loadProducts}
+            onReload={handleReload} // ← передаем handleReload
             onOpenCreateForm={toggleCreateForm}
           />
         </Card>
@@ -201,13 +248,13 @@ const ProductPage = () => {
               description="Продукты не найдены"
               image={Empty.PRESENTED_IMAGE_SIMPLE}
             />
-            {filters.search && (
+            {(filters.search || filters.type) && (
               <Button
                 type="link"
-                onClick={() => handleFiltersChange({ search: '' })}
+                onClick={() => handleFiltersChange({ search: '', type: null })}
                 className="mt-2"
               >
-                Очистить поиск
+                Очистить фильтры
               </Button>
             )}
           </div>
