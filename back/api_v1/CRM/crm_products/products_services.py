@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-from sqlalchemy import select, Result, func
+from sqlalchemy import select, Result, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -15,7 +15,7 @@ from core.models.model_products import Product
 
 
 async def create_product_service(
-    session: AsyncSession, new_product: ProductCreateSchema
+        session: AsyncSession, new_product: ProductCreateSchema
 ) -> ProductSchema:
     result: Result = await session.execute(
         select(Product).where(
@@ -46,7 +46,7 @@ async def create_product_service(
 
 
 async def get_products_service(
-    session: AsyncSession, filters: ProductFilterSchema
+        session: AsyncSession, filters: ProductFilterSchema
 ) -> tuple[list[ProductSchema], int]:
     sort_filters = {
         "name": Product.name,
@@ -68,7 +68,16 @@ async def get_products_service(
         base_stmt = base_stmt.where(Product.name == filters.name)
 
     if filters.search:
-        base_stmt = base_stmt.where(Product.name.ilike(f"%{filters.search}%"))
+        base_stmt = base_stmt.where(
+            or_(
+                Product.name.ilike(f"%{filters.search}%"),
+                Product.name.ilike(f"%{filters.search.replace('е', 'ё')}%"),
+                Product.name.ilike(f"%{filters.search.replace('ё', 'е')}%"),
+                Product.size.ilike(f"%{filters.search}%"),
+                Product.size.ilike(f"%{filters.search.replace('е', 'ё')}%"),
+                Product.size.ilike(f"%{filters.search.replace('ё', 'е')}%"),
+            )
+        )
 
     # 2. Запрос для подсчета total (только фильтры, без сортировки и пагинации)
     count_stmt = select(func.count()).select_from(base_stmt.subquery())
@@ -97,8 +106,8 @@ async def get_products_service(
 
 
 async def get_product_by_id_service(
-    session: AsyncSession,
-    product_id: str,
+        session: AsyncSession,
+        product_id: str,
 ) -> ProductSchema:
     product: Product = await get_product(session=session, product_id=product_id)
     if product is None:
@@ -111,9 +120,9 @@ async def get_product_by_id_service(
 
 
 async def update_product_partial_service(
-    session: AsyncSession,
-    product_id: str,
-    update_data: ProductPartialUpdateSchema,
+        session: AsyncSession,
+        product_id: str,
+        update_data: ProductPartialUpdateSchema,
 ) -> ProductSchema:
     product: Product = await get_product(session=session, product_id=product_id)
 

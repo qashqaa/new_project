@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-from sqlalchemy import select, Result, func, delete
+from sqlalchemy import select, Result, func, delete, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -19,7 +19,7 @@ from core.models import Material
 
 
 async def create_material_service(
-    session: AsyncSession, create_material_schema: MaterialCreateSchema
+        session: AsyncSession, create_material_schema: MaterialCreateSchema
 ) -> MaterialSchema:
     mat_name = await get_material_by_details(
         session=session,
@@ -43,9 +43,8 @@ async def create_material_service(
 
 
 async def get_materials_service(
-    session: AsyncSession, filters: MaterialFilterSchema
+        session: AsyncSession, filters: MaterialFilterSchema
 ) -> tuple[list[MaterialSchema], int]:
-
     sort_fields = {
         "name": Material.name,
         "material_type": Material.material_type,
@@ -54,11 +53,21 @@ async def get_materials_service(
     }
 
     stmt = select(Material)
+
     if filters.material_type:
         stmt = stmt.where(Material.material_type == filters.material_type)
 
     if filters.search:
-        stmt = stmt.where(Material.name.ilike(f"%{filters.search}%"))
+        stmt = stmt.where(
+            or_(
+                Material.name.ilike(f"%{filters.search}%"),
+                Material.name.ilike(f"%{filters.search.replace('е', 'ё')}%"),
+                Material.name.ilike(f"%{filters.search.replace('ё', 'е')}%"),
+                Material.detail.ilike(f"%{filters.search}%"),
+                Material.detail.ilike(f"%{filters.search.replace('е', 'ё')}%"),
+                Material.detail.ilike(f"%{filters.search.replace('ё', 'е')}%"),
+            )
+        )
 
     sort_field = sort_fields.get(filters.sort_by, Material.id)
 
@@ -82,7 +91,7 @@ async def get_materials_service(
 
 
 async def get_material_by_id_service(
-    session: AsyncSession, material_id: str
+        session: AsyncSession, material_id: str
 ) -> MaterialSchema:
     material: Material = await get_material_by_id(
         session=session, material_id=material_id
@@ -96,7 +105,7 @@ async def get_material_by_id_service(
 
 
 async def append_material_service(
-    session: AsyncSession, material_id: str, update_data: MaterialAppendSchema
+        session: AsyncSession, material_id: str, update_data: MaterialAppendSchema
 ) -> MaterialSchema:
     material: Material = await get_material_by_id(
         session=session, material_id=material_id
@@ -118,7 +127,7 @@ async def append_material_service(
 
 
 async def partial_update_service(
-    session: AsyncSession, material_id: str, update_data: MaterialPartialUpdateSchema
+        session: AsyncSession, material_id: str, update_data: MaterialPartialUpdateSchema
 ) -> MaterialSchema:
     material: Material = await get_material_by_id(
         session=session, material_id=material_id
