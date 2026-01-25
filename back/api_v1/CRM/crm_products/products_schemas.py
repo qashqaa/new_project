@@ -121,7 +121,7 @@ class ProductSchema(BaseModel):
                 )
             )
 
-        for price in product.price_tier:
+        for price in sorted(product.price_tier, key=lambda x: x.start):
             price_tier.append(
                 ProductPriceItemSchema(
                     id=price.id,

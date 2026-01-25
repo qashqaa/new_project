@@ -4,15 +4,17 @@ import {
   DeleteOutlined,
   ToolOutlined,
   DollarOutlined,
+  CopyOutlined,
 } from '@ant-design/icons';
 
 const ProductCard = ({
-                       product,
-                       onEdit,
-                       onDelete,
-                       onManageMaterials,
-                       onManagePrices,
-                     }) => {
+  product,
+  onEdit,
+  onDelete,
+  onManageMaterials,
+  onManagePrices,
+  onCopy, // ← Добавили новый пропс
+}) => {
   return (
     <div className="bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
       {/* Заголовок и кнопки действий */}
@@ -27,6 +29,15 @@ const ProductCard = ({
           )}
         </div>
         <div className="flex gap-1">
+          {/* Кнопка копирования */}
+          <button
+            onClick={() => onCopy(product)}
+            className="p-1 text-purple-500 hover:text-purple-700 hover:bg-purple-50 rounded transition-colors"
+            title="Копировать продукт"
+          >
+            <CopyOutlined />
+          </button>
+
           <button
             onClick={() => onEdit(product)}
             className="p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"

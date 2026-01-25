@@ -52,6 +52,8 @@ export const productsApi = {
 
   // Удалить продукт
   deleteProduct: (productId) => apiClient.delete(`/crm/products/${productId}`),
+
+  copyProduct: (productId) => apiClient.post(`/crm/products/${productId}/copy`),
 };
 
 // Product Relations API (Материалы и цены продуктов)

@@ -187,6 +187,33 @@ const ProductPage = () => {
     setShowCreateForm(false);
   };
 
+  const handleCopyProduct = async (product) => {
+    Modal.confirm({
+      title: 'Копировать продукт?',
+      content: `Будет создана копия "${product.name}"`,
+      okText: 'Копировать',
+      cancelText: 'Отмена',
+      onOk: async () => {
+        try {
+          const response = await productsApi.copyProduct(product.id);
+          message.success('Продукт скопирован');
+
+          // Обновляем список продуктов
+          await loadProducts();
+
+          // Показываем уведомление со ссылкой на новый продукт
+          message.success(
+            <span>
+              Создана копия: <strong>{response.data.name}</strong>
+            </span>
+          );
+        } catch (error) {
+          message.error('Ошибка копирования продукта');
+        }
+      },
+    });
+  };
+
   return (
     <div className="products-page">
       {/* Заголовок */}
@@ -270,6 +297,7 @@ const ProductPage = () => {
                   onDelete={handleDeleteProduct}
                   onManageMaterials={openMaterialsModal}
                   onManagePrices={openPricesModal}
+                  onCopy={handleCopyProduct} // ← Добавь эту строку
                 />
               ))}
             </div>

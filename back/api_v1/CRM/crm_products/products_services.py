@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from api_v1.CRM.crm_products.product_CRUD import create_product, get_product
+from api_v1.CRM.crm_products.product_rels_CRUD import create_product_price
 from api_v1.CRM.crm_products.products_schemas import (
     ProductCreateSchema,
     ProductSchema,
@@ -174,3 +175,46 @@ async def delete_product_service(session: AsyncSession, product_id: str):
     await session.commit()
 
     return {"message": f"Product '{product_id}' and all related data deleted"}
+
+
+async def copy_product_service(session: AsyncSession, product_id: str):
+    original: Product = await get_product(session=session, product_id=product_id)
+
+    # Проверка на наличие копии (что бы не было много копии продукта)
+    # result: Result = await session.execute(
+    #     select(Product).where(Product.name == original.name + " " + "копия")
+    # )
+    # product_name_check: Product | None = result.scalars().one_or_none()
+    #
+    # if product_name_check:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_409_CONFLICT,
+    #         detail=f"Copy of Product - {original.name + " " + "копия"} with this name already exists",
+    #     )
+
+    product_copy = await create_product(
+        session=session,
+        name=original.name + " " + "копия",
+        size=original.size,
+        detail=getattr(original, "detail", None),
+        description=getattr(original, "description", None),
+    )
+    await session.flush()
+    prices = []
+
+    for price in original.price_tier:
+        prices.append(
+            await create_product_price(
+                session=session,
+                product_id=product_copy.id,
+                start=price.start,
+                end=price.end,
+                price=price.price,
+                description=price.description,
+            )
+        )
+
+    await session.commit()
+    await session.refresh(product_copy, ["price_tier"])
+
+    return ProductSchema.from_orm_with_materials(product_copy)
