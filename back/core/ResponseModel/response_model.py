@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar, List
+from typing import Generic, TypeVar, List, Optional
 
 from pydantic import BaseModel, computed_field, Field
 
@@ -7,6 +7,7 @@ T = TypeVar("T")
 
 class PaginatedResponse(BaseModel, Generic[T]):
     items: List[T]
+    total_summary: Optional[int] = Field(None)
     total: int
     skip: int
     limit: int

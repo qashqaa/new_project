@@ -1,25 +1,26 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, Result
 from fastapi import HTTPException, status
+from sqlalchemy import select, func, Result
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 
-from api_v1.CRM.crm_expenses_and_income.expenses_schemas import (
-    NewExpenseSchema,
-    ExpenseSchema,
-    ExpensesFilterSchema,
-    ExpenseUpdateSchema,
-)
 from api_v1.CRM.crm_expenses_and_income.expenses_CRUD import (
     create_expense,
     get_expense_by_id,
     partial_update_expense,
     delete_expense,
 )
+from api_v1.CRM.crm_expenses_and_income.expenses_schemas import (
+    NewExpenseSchema,
+    ExpenseSchema,
+    ExpensesFilterSchema,
+    ExpenseUpdateSchema,
+)
 from core.models import ExpenseModel
 
 
 async def create_expense_service(
-    session: AsyncSession,
-    new_expense: NewExpenseSchema,
+        session: AsyncSession,
+        new_expense: NewExpenseSchema,
 ) -> ExpenseSchema:
     new_expense = await create_expense(
         session=session,
@@ -34,8 +35,8 @@ async def create_expense_service(
 
 
 async def get_all_expenses_service(
-    session: AsyncSession, expense_filter: ExpensesFilterSchema
-) -> tuple[list[ExpenseSchema], int]:
+        session: AsyncSession, expense_filter: ExpensesFilterSchema
+) -> tuple[list[ExpenseSchema], int, int]:
     stmt = select(ExpenseModel)
 
     if expense_filter.actual_date_from:
@@ -59,6 +60,19 @@ async def get_all_expenses_service(
     total_result = await session.execute(count_stmt)
     total: int = total_result.scalar()
 
+    # Создаем подзапрос
+    subq = stmt.subquery()
+
+    # Создаем алиас для модели в подзапросе
+    expenseAlias = aliased(ExpenseModel, subq)
+
+    # Суммируем amount из подзапроса
+    query_summary = select(func.sum(expenseAlias.amount)).select_from(subq)
+
+    summary_result = await session.execute(query_summary)
+    total_summary_raw = summary_result.scalar() or 0
+    total_summary: int = int(total_summary_raw / 100)
+
     stmt = stmt.offset(expense_filter.skip).limit(expense_filter.limit)
 
     result: Result = await session.execute(stmt)
@@ -66,20 +80,20 @@ async def get_all_expenses_service(
         ExpenseSchema.model_validate(expense) for expense in result.scalars().all()
     ]
 
-    return expenses, total
+    return expenses, total_summary, total
 
 
 async def get_expense_by_id_service(
-    session: AsyncSession, expense_id: int
+        session: AsyncSession, expense_id: int
 ) -> ExpenseSchema:
     expense = await get_expense_by_id(session=session, expense_id=expense_id)
     return ExpenseSchema.model_validate(expense)
 
 
 async def update_expense_service(
-    session: AsyncSession,
-    expense_id: int,
-    update_data: ExpenseUpdateSchema,
+        session: AsyncSession,
+        expense_id: int,
+        update_data: ExpenseUpdateSchema,
 ) -> ExpenseSchema:
     expense: ExpenseModel | None = await get_expense_by_id(
         session=session, expense_id=expense_id

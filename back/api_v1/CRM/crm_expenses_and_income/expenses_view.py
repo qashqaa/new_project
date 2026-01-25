@@ -1,8 +1,14 @@
 from typing import Annotated
 
-from pydantic import Field
 from fastapi import APIRouter, status, Depends
+from pydantic import Field
 
+from api_v1.CRM.crm_expenses_and_income.expenses_schemas import (
+    NewExpenseSchema,
+    ExpenseSchema,
+    ExpensesFilterSchema,
+    ExpenseUpdateSchema,
+)
 from api_v1.CRM.crm_expenses_and_income.expenses_service import (
     create_expense_service,
     get_all_expenses_service,
@@ -11,15 +17,7 @@ from api_v1.CRM.crm_expenses_and_income.expenses_service import (
     delete_expense_service,
 )
 from core.ResponseModel.response_model import PaginatedResponse
-
 from core.postgres_db import SessionDepPG
-
-from api_v1.CRM.crm_expenses_and_income.expenses_schemas import (
-    NewExpenseSchema,
-    ExpenseSchema,
-    ExpensesFilterSchema,
-    ExpenseUpdateSchema,
-)
 
 router = APIRouter(prefix="/expenses")
 
@@ -28,8 +26,8 @@ ExpenseID = Annotated[int, Field(gt=0, le=1000000)]
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_expense_crm(
-    session: SessionDepPG,
-    new_expense: NewExpenseSchema,
+        session: SessionDepPG,
+        new_expense: NewExpenseSchema,
 ) -> ExpenseSchema:
     expense = await create_expense_service(session=session, new_expense=new_expense)
     return expense
@@ -37,16 +35,17 @@ async def create_expense_crm(
 
 @router.get("/", response_model=PaginatedResponse[ExpenseSchema])
 async def get_all_expenses_crm(
-    session: SessionDepPG,
-    expense_filters: ExpensesFilterSchema = Depends(),
+        session: SessionDepPG,
+        expense_filters: ExpensesFilterSchema = Depends(),
 ):
-    expenses: tuple[list[ExpenseSchema], int] = await get_all_expenses_service(
+    expenses: tuple[list[ExpenseSchema], int, int] = await get_all_expenses_service(
         session=session,
         expense_filter=expense_filters,
     )
 
     return PaginatedResponse(
         items=expenses[0],
+        total_summary=expenses[-2],
         total=expenses[-1],
         skip=expense_filters.skip,
         limit=expense_filters.limit,
@@ -64,9 +63,8 @@ async def get_by_id_expense_crm(session: SessionDepPG, expense_id: ExpenseID):
 
 @router.patch("/{expense_id}", response_model=ExpenseSchema)
 async def update_by_id_expense_crm(
-    session: SessionDepPG, expense_id: ExpenseID, update_data: ExpenseUpdateSchema
+        session: SessionDepPG, expense_id: ExpenseID, update_data: ExpenseUpdateSchema
 ):
-
     updated = await update_expense_service(
         session=session, expense_id=expense_id, update_data=update_data
     )

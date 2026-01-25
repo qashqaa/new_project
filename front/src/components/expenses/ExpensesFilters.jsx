@@ -84,7 +84,7 @@ const ExpensesFilters = ({ filters, onFilterChange }) => {
               <Option value="Маркетинг">Маркетинг</Option>
               <Option value="Аренда">Аренда</Option>
               <Option value="Телефоны">Телефоны</Option>
-              <Option value="Телефоны">Телефоны</Option>
+              <Option value="Еда/Продукты">Еда/Продукты</Option>
               <Option value="Зарплата">Зарплата</Option>
               <Option value="Прочие расходы">Прочие расходы</Option>
             </Select>

@@ -1,6 +1,15 @@
 import { expensesApi } from '../api/client';
 import React, { useState, useEffect } from 'react';
-import { Button, Col, message, Row, Space, Typography } from 'antd';
+import {
+  Button,
+  Card,
+  Col,
+  message,
+  Row,
+  Space,
+  Statistic,
+  Typography,
+} from 'antd';
 import ExpensesTable from '../components/expenses/ExpensesTable.jsx';
 import ExpensesFilters from '../components/expenses/ExpensesFilters.jsx';
 import ExpensesCreateModal from '../components/expenses/ExpensesCreateModal.jsx';
@@ -13,6 +22,7 @@ const { Title } = Typography;
 const ExpensesPage = () => {
   const [expenses, setExpenses] = useState([]);
   const [total, setTotal] = useState(0);
+  const [totalSummary, setTotalSummary] = useState(0); // сумма всех расходов
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
     skip: 0,
@@ -37,6 +47,7 @@ const ExpensesPage = () => {
       }));
       setExpenses(expensesWithKey);
       setTotal(response.data.total);
+      setTotalSummary(response.data.total_summary || 0);
     } catch (error) {
       message.error('Ошибка загрузки расходов');
       console.log(error);
@@ -130,6 +141,21 @@ const ExpensesPage = () => {
         </Col>
         <Col>
           <Space>
+            {/* Карточка с общей суммой */}
+            <Card size="small" className="summary-card">
+              <Statistic
+                title="Общая сумма расходов"
+                value={totalSummary}
+                precision={2}
+                prefix="UZS"
+                valueStyle={{
+                  color: '#595959',
+                  fontSize: '18px',
+                  fontWeight: 'bold',
+                }}
+              />
+            </Card>
+
             <Button
               type="primary"
               icon={<ReloadOutlined />}

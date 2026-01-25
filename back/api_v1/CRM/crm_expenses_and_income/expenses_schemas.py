@@ -1,5 +1,5 @@
-from typing import Optional
 from datetime import date, datetime
+from typing import Optional
 
 from pydantic import BaseModel, Field, NonNegativeFloat, field_validator, NonNegativeInt
 
@@ -50,7 +50,7 @@ class ExpensesFilterSchema(BaseModel):
         None, description="Фильтр по периодичности расхода"
     )
 
-    sort_order: Optional[str] = Field("asc", description="Порядок сортировки")
+    sort_order: Optional[str] = Field("desc", description="Порядок сортировки")
 
 
 class ExpenseUpdateSchema(BaseModel):
