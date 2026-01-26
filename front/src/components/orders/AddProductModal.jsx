@@ -20,7 +20,7 @@ const AddProductModal = ({ open, onClose, orderId, onSuccess }) => {
   const fetchProducts = async () => {
     setProductsLoading(true);
     try {
-      const response = await productsApi.getProducts({ limit: 100 });
+      const response = await productsApi.getProducts({ limit: 1000 });
       setProducts(response.data.items);
     } catch (error) {
       message.error('Ошибка при загрузке продуктов');
